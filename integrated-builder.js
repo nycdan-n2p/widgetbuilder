@@ -3,6 +3,8 @@ class IntegratedWidgetBuilder {
     constructor() {
         this.domains = [];
         this.settings = {
+            widgetId: null,
+            widgetName: 'My AI Widget',
             selectedAgent: 'boss-support',
             primaryColor: '#667eea',
             secondaryColor: '#f3f4f6',
@@ -15,8 +17,14 @@ class IntegratedWidgetBuilder {
             maxMessages: 50,
             widgetStyle: 'modern',
             currentTheme: 'default',
-            buttonStyle: 'modern-chat'
+            buttonStyle: 'modern-chat',
+            hostingOption: 'hosted', // 'hosted' or 'self-hosted'
+            createdAt: null,
+            updatedAt: null
         };
+        
+        // Saved widgets storage
+        this.savedWidgets = [];
         
         // Mock agents data (will be replaced with database call)
         this.availableAgents = [
@@ -180,11 +188,181 @@ class IntegratedWidgetBuilder {
     
     init() {
         this.loadSettings();
+        this.loadSavedWidgets();
+        
+        // Check if we're loading a specific widget from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const widgetId = urlParams.get('widget');
+        
+        if (widgetId) {
+            this.loadWidget(widgetId);
+        } else if (!this.settings.widgetId) {
+            // Generate widget ID if this is a new widget
+            this.settings.widgetId = this.generateWidgetId();
+            this.settings.createdAt = new Date().toISOString();
+        }
+        
         this.renderAgentSelection();
         this.renderDomains();
         this.renderButtonStyles();
         this.updateCodeOutput();
         this.highlightActiveNav();
+    }
+    
+    // Widget Management Functions
+    generateWidgetId() {
+        const timestamp = Date.now().toString(36);
+        const random = Math.random().toString(36).substring(2, 8);
+        return `widget_${timestamp}_${random}`;
+    }
+    
+    saveCurrentWidget() {
+        if (this.domains.length === 0) {
+            this.showNotification('Please add at least one domain before saving', 'error');
+            return false;
+        }
+        
+        // Update timestamp
+        this.settings.updatedAt = new Date().toISOString();
+        
+        // Create widget data
+        const widgetData = {
+            ...this.settings,
+            domains: [...this.domains],
+            version: '1.0'
+        };
+        
+        // Check if widget already exists (update) or create new
+        const existingIndex = this.savedWidgets.findIndex(w => w.widgetId === this.settings.widgetId);
+        
+        let message;
+        if (existingIndex !== -1) {
+            // Update existing widget
+            this.savedWidgets[existingIndex] = widgetData;
+            message = `Widget "${this.settings.widgetName}" updated successfully`;
+        } else {
+            // Save new widget
+            this.savedWidgets.push(widgetData);
+            message = `Widget "${this.settings.widgetName}" saved successfully`;
+        }
+        
+        // Persist to localStorage
+        this.saveSavedWidgets();
+        
+        // Show success notification
+        this.showNotification(message, 'success');
+        
+        // Redirect to dashboard after short delay
+        setTimeout(() => {
+            window.location.href = 'widgets-dashboard.html';
+        }, 1500);
+        
+        return true;
+    }
+    
+    loadWidget(widgetId) {
+        const widget = this.savedWidgets.find(w => w.widgetId === widgetId);
+        if (!widget) {
+            this.showNotification('Widget not found', 'error');
+            return false;
+        }
+        
+        // Load widget settings
+        this.settings = { ...widget };
+        this.domains = [...widget.domains];
+        
+        // Re-render all components
+        this.renderAgentSelection();
+        this.renderDomains();
+        this.renderButtonStyles();
+        this.populateForm();
+        this.updateCodeOutput();
+        
+        this.showNotification(`Loaded widget: ${widget.widgetName}`, 'success');
+        return true;
+    }
+    
+    deleteWidget(widgetId) {
+        const widget = this.savedWidgets.find(w => w.widgetId === widgetId);
+        if (!widget) return false;
+        
+        if (confirm(`Delete widget "${widget.widgetName}"? This action cannot be undone.`)) {
+            this.savedWidgets = this.savedWidgets.filter(w => w.widgetId !== widgetId);
+            this.saveSavedWidgets();
+            this.showNotification(`Widget "${widget.widgetName}" deleted`, 'success');
+            return true;
+        }
+        return false;
+    }
+    
+    cloneWidget(widgetId) {
+        const widget = this.savedWidgets.find(w => w.widgetId === widgetId);
+        if (!widget) return false;
+        
+        // Create new widget with copied settings
+        const clonedWidget = {
+            ...widget,
+            widgetId: this.generateWidgetId(),
+            widgetName: `${widget.widgetName} (Copy)`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        this.savedWidgets.push(clonedWidget);
+        this.saveSavedWidgets();
+        this.showNotification(`Widget cloned as "${clonedWidget.widgetName}"`, 'success');
+        return clonedWidget.widgetId;
+    }
+    
+    createNewWidget() {
+        // Reset to default settings with new ID
+        this.settings = {
+            widgetId: this.generateWidgetId(),
+            widgetName: 'My AI Widget',
+            selectedAgent: 'boss-support',
+            primaryColor: '#667eea',
+            secondaryColor: '#f3f4f6',
+            backgroundColor: '#ffffff',
+            textColor: '#1f2937',
+            position: 'bottom-right',
+            widgetTitle: 'AI Assistant',
+            greeting: 'Hi! How can I help you today?',
+            placeholder: 'Type your message...',
+            maxMessages: 50,
+            widgetStyle: 'modern',
+            currentTheme: 'default',
+            buttonStyle: 'modern-chat',
+            createdAt: new Date().toISOString(),
+            updatedAt: null
+        };
+        
+        this.domains = [];
+        
+        // Re-render all components
+        this.renderAgentSelection();
+        this.renderDomains();
+        this.renderButtonStyles();
+        this.populateForm();
+        this.updateCodeOutput();
+        
+        this.showNotification('Created new widget', 'success');
+    }
+    
+    // Storage functions
+    saveSavedWidgets() {
+        localStorage.setItem('aiWidgetSavedWidgets', JSON.stringify(this.savedWidgets));
+    }
+    
+    loadSavedWidgets() {
+        const saved = localStorage.getItem('aiWidgetSavedWidgets');
+        if (saved) {
+            try {
+                this.savedWidgets = JSON.parse(saved);
+            } catch (error) {
+                console.error('Error loading saved widgets:', error);
+                this.savedWidgets = [];
+            }
+        }
     }
     
     // Agent Selection Management
@@ -233,6 +411,40 @@ class IntegratedWidgetBuilder {
         
         const selectedAgent = this.availableAgents.find(agent => agent.id === this.settings.selectedAgent);
         this.showNotification(`Selected agent: ${selectedAgent.name}`, 'success');
+    }
+    
+    updateWidgetName() {
+        const input = document.getElementById('widgetName');
+        this.settings.widgetName = input.value.trim() || 'My AI Widget';
+        this.updateCodeOutput();
+        this.saveSettings();
+    }
+    
+    // Hosting Options Management
+    selectHostingOption(option) {
+        this.settings.hostingOption = option;
+        
+        // Update UI
+        document.querySelectorAll('.hosting-option').forEach(el => el.classList.remove('active'));
+        document.getElementById(option === 'hosted' ? 'hostedOption' : 'selfHostedOption').classList.add('active');
+        
+        // Update radio buttons
+        document.querySelector(`input[value="${option}"]`).checked = true;
+        
+        // Show/hide download button
+        const downloadBtn = document.getElementById('downloadWidgetBtn');
+        if (option === 'self-hosted') {
+            downloadBtn.style.display = 'inline-flex';
+        } else {
+            downloadBtn.style.display = 'none';
+        }
+        
+        // Update code output
+        this.updateCodeOutput();
+        this.saveSettings();
+        
+        const optionName = option === 'hosted' ? 'Net2Phone Hosted' : 'Self-Hosted';
+        this.showNotification(`Selected ${optionName} option`, 'success');
     }
     
     // Domain Management
@@ -854,6 +1066,8 @@ class IntegratedWidgetBuilder {
 
         const allowedDomains = this.domains.map(d => `'${d.name}'`).join(', ');
         const selectedAgent = this.availableAgents.find(agent => agent.id === this.settings.selectedAgent);
+        const isHosted = this.settings.hostingOption === 'hosted';
+        const widgetUrl = isHosted ? 'https://aiagent.net2phone.com/widget.js' : './widget.js';
 
         const code = `<!-- AI Chat Widget - Generated by Widget Builder -->
 <!-- Simply paste this code before the closing </body> tag of your website -->
@@ -872,6 +1086,10 @@ ${domainConfigs}
     
     // Widget Configuration
     window.aiWidgetConfig = {
+        // Widget Identification (for shared inbox routing)
+        widgetId: '${this.settings.widgetId}',
+        widgetName: '${this.settings.widgetName}',
+        
         // Agent Assignment
         agentId: '${this.settings.selectedAgent}',
         agentName: '${selectedAgent ? selectedAgent.name : 'Default Agent'}',
@@ -911,9 +1129,9 @@ ${domainConfigs}
         showUnreadBadge: true
     };
     
-    // Load the hosted widget script
+    // Load the widget script
     var script = document.createElement('script');
-    script.src = 'http://aiagent.net2phone.com/widget.js';
+    script.src = '${widgetUrl}';
     script.onload = function() {
         console.log('✅ AI Chat Widget loaded successfully');
     };
@@ -926,6 +1144,384 @@ ${domainConfigs}
 
         this.updateCodeOutput(code);
         this.showNotification('Widget code generated successfully!', 'success');
+    }
+    
+    // Download widget functionality
+    downloadWidget() {
+        if (this.domains.length === 0) {
+            this.showNotification('Please add at least one domain first', 'error');
+            return;
+        }
+        
+        const selectedAgent = this.availableAgents.find(agent => agent.id === this.settings.selectedAgent);
+        const allowedDomains = this.domains.map(d => `'${d.name}'`).join(', ');
+        
+        // Generate standalone widget.js file
+        const widgetJs = this.generateStandaloneWidget(selectedAgent, allowedDomains);
+        
+        // Create and download file
+        const blob = new Blob([widgetJs], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `widget-${this.settings.widgetId}.js`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showNotification('Widget file downloaded successfully!', 'success');
+    }
+    
+    generateStandaloneWidget(selectedAgent, allowedDomains) {
+        return `/**
+ * AI Chat Widget - Standalone Version
+ * Widget ID: ${this.settings.widgetId}
+ * Widget Name: ${this.settings.widgetName}
+ * Generated: ${new Date().toISOString()}
+ * 
+ * IMPORTANT: This is a standalone widget file.
+ * Upload this file to your web server and reference it in your HTML.
+ */
+
+(function() {
+    'use strict';
+    
+    // Widget Configuration - DO NOT MODIFY
+    var WIDGET_CONFIG = {
+        // Widget Identification
+        widgetId: '${this.settings.widgetId}',
+        widgetName: '${this.settings.widgetName}',
+        
+        // Agent Assignment
+        agentId: '${this.settings.selectedAgent}',
+        agentName: '${selectedAgent ? selectedAgent.name : 'Default Agent'}',
+        
+        // Security Configuration
+        allowedDomains: [${allowedDomains}],
+        
+        // API Configuration
+        apiUrl: 'https://aiagent.net2phone.com/api',
+        
+        // Widget Settings
+        maxMessagesPerMinute: 10,
+        maxMessagesPerHour: ${this.settings.maxMessages},
+        maxMessageLength: 2000,
+        minMessageInterval: 2000,
+        
+        // UI Configuration
+        primaryColor: '${this.settings.primaryColor}',
+        secondaryColor: '${this.settings.secondaryColor}',
+        backgroundColor: '${this.settings.backgroundColor}',
+        textColor: '${this.settings.textColor}',
+        position: '${this.settings.position}',
+        buttonStyle: '${this.settings.buttonStyle}',
+        
+        // Content
+        title: '${this.settings.widgetTitle.replace(/'/g, "\\'")}',
+        greeting: '${this.settings.greeting.replace(/'/g, "\\'")}',
+        placeholder: '${this.settings.placeholder.replace(/'/g, "\\'")}',
+        
+        // Widget Dimensions
+        width: '350px',
+        height: '500px',
+        iconSize: '56px'
+    };
+    
+    // Domain validation
+    function validateDomain() {
+        var currentDomain = window.location.hostname;
+        var allowed = WIDGET_CONFIG.allowedDomains.some(function(domain) {
+            return currentDomain === domain || currentDomain.endsWith('.' + domain);
+        });
+        
+        if (!allowed) {
+            console.warn('AI Chat Widget: Domain not authorized:', currentDomain);
+            return false;
+        }
+        return true;
+    }
+    
+    // Rate limiting
+    var rateLimiter = {
+        messages: [],
+        
+        checkLimit: function() {
+            var now = Date.now();
+            var minuteAgo = now - 60000;
+            var hourAgo = now - 3600000;
+            
+            // Clean old messages
+            this.messages = this.messages.filter(function(time) {
+                return time > hourAgo;
+            });
+            
+            var messagesThisMinute = this.messages.filter(function(time) {
+                return time > minuteAgo;
+            }).length;
+            
+            var messagesThisHour = this.messages.length;
+            
+            if (messagesThisMinute >= WIDGET_CONFIG.maxMessagesPerMinute) {
+                return { allowed: false, reason: 'Too many messages per minute' };
+            }
+            
+            if (messagesThisHour >= WIDGET_CONFIG.maxMessagesPerHour) {
+                return { allowed: false, reason: 'Hourly message limit exceeded' };
+            }
+            
+            return { allowed: true };
+        },
+        
+        addMessage: function() {
+            this.messages.push(Date.now());
+        }
+    };
+    
+    // Widget UI Creation
+    function createWidget() {
+        if (!validateDomain()) return;
+        
+        var widgetHtml = \`
+            <div id="ai-chat-widget" style="position: fixed; z-index: 10000; \${getPositionStyles()}">
+                <button id="ai-widget-button" style="
+                    \${getButtonStyles()}
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                ">
+                    \${getButtonContent()}
+                </button>
+                
+                <div id="ai-widget-container" style="
+                    position: absolute;
+                    \${getContainerPosition()}
+                    width: \${WIDGET_CONFIG.width};
+                    height: \${WIDGET_CONFIG.height};
+                    background: \${WIDGET_CONFIG.backgroundColor};
+                    border-radius: 12px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+                    transform: scale(0.8) translateY(20px);
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                    display: none;
+                    flex-direction: column;
+                    overflow: hidden;
+                ">
+                    <div id="ai-widget-header" style="
+                        background: \${WIDGET_CONFIG.primaryColor};
+                        color: white;
+                        padding: 16px;
+                        font-weight: 600;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <span>\${WIDGET_CONFIG.title}</span>
+                        <button id="ai-widget-close" style="
+                            background: none;
+                            border: none;
+                            color: white;
+                            cursor: pointer;
+                            font-size: 18px;
+                            padding: 4px;
+                        ">×</button>
+                    </div>
+                    
+                    <div id="ai-widget-messages" style="
+                        flex: 1;
+                        padding: 16px;
+                        overflow-y: auto;
+                        background: \${WIDGET_CONFIG.secondaryColor};
+                    ">
+                        <div style="
+                            background: \${WIDGET_CONFIG.backgroundColor};
+                            color: \${WIDGET_CONFIG.textColor};
+                            padding: 12px;
+                            border-radius: 12px;
+                            margin-bottom: 12px;
+                        ">\${WIDGET_CONFIG.greeting}</div>
+                    </div>
+                    
+                    <div id="ai-widget-input" style="
+                        padding: 16px;
+                        border-top: 1px solid #eee;
+                        background: \${WIDGET_CONFIG.backgroundColor};
+                        display: flex;
+                        gap: 8px;
+                    ">
+                        <input type="text" id="ai-message-input" placeholder="\${WIDGET_CONFIG.placeholder}" style="
+                            flex: 1;
+                            padding: 8px 12px;
+                            border: 1px solid #ddd;
+                            border-radius: 20px;
+                            outline: none;
+                        ">
+                        <button id="ai-send-button" style="
+                            background: \${WIDGET_CONFIG.primaryColor};
+                            color: white;
+                            border: none;
+                            border-radius: 20px;
+                            padding: 8px 16px;
+                            cursor: pointer;
+                        ">Send</button>
+                    </div>
+                </div>
+            </div>
+        \`;
+        
+        document.body.insertAdjacentHTML('beforeend', widgetHtml);
+        initializeWidget();
+    }
+    
+    function getPositionStyles() {
+        switch (WIDGET_CONFIG.position) {
+            case 'bottom-right': return 'bottom: 20px; right: 20px;';
+            case 'bottom-left': return 'bottom: 20px; left: 20px;';
+            case 'top-right': return 'top: 20px; right: 20px;';
+            case 'top-left': return 'top: 20px; left: 20px;';
+            default: return 'bottom: 20px; right: 20px;';
+        }
+    }
+    
+    function getButtonStyles() {
+        var buttonStyle = WIDGET_CONFIG.buttonStyle;
+        var baseStyle = \`
+            background: \${WIDGET_CONFIG.primaryColor};
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        \`;
+        
+        switch (buttonStyle) {
+            case 'chat-with-us':
+            case 'help-question':
+            case 'support-headset':
+            case 'assistant-robot':
+            case 'customer-service':
+                return baseStyle + 'border-radius: 25px; padding: 12px 20px;';
+            case 'message-bubble':
+                return baseStyle + 'border-radius: 50% 50% 50% 10px; width: 52px; height: 52px;';
+            case 'minimal-plus':
+                return baseStyle + 'border-radius: 50%; width: 48px; height: 48px;';
+            default:
+                return baseStyle + 'border-radius: 50%; width: 56px; height: 56px;';
+        }
+    }
+    
+    function getButtonContent() {
+        var buttonStyle = WIDGET_CONFIG.buttonStyle;
+        var buttonConfig = {
+            'modern-chat': '💬',
+            'chat-with-us': '💬 Chat with us',
+            'help-question': '❓ Need help?',
+            'support-headset': '🎧 Live Support',
+            'message-bubble': '💭',
+            'minimal-plus': '+',
+            'assistant-robot': '🤖 AI Assistant',
+            'customer-service': '👋 Hello!'
+        };
+        
+        return buttonConfig[buttonStyle] || '💬';
+    }
+    
+    function getContainerPosition() {
+        switch (WIDGET_CONFIG.position) {
+            case 'bottom-right': return 'bottom: 90px; right: 0;';
+            case 'bottom-left': return 'bottom: 90px; left: 0;';
+            case 'top-right': return 'top: 90px; right: 0;';
+            case 'top-left': return 'top: 90px; left: 0;';
+            default: return 'bottom: 90px; right: 0;';
+        }
+    }
+    
+    function initializeWidget() {
+        var button = document.getElementById('ai-widget-button');
+        var container = document.getElementById('ai-widget-container');
+        var closeBtn = document.getElementById('ai-widget-close');
+        var sendBtn = document.getElementById('ai-send-button');
+        var input = document.getElementById('ai-message-input');
+        var messages = document.getElementById('ai-widget-messages');
+        
+        var isOpen = false;
+        
+        button.addEventListener('click', function() {
+            if (!isOpen) {
+                container.style.display = 'flex';
+                setTimeout(function() {
+                    container.style.transform = 'scale(1) translateY(0)';
+                    container.style.opacity = '1';
+                }, 10);
+                isOpen = true;
+            }
+        });
+        
+        closeBtn.addEventListener('click', function() {
+            container.style.transform = 'scale(0.8) translateY(20px)';
+            container.style.opacity = '0';
+            setTimeout(function() {
+                container.style.display = 'none';
+            }, 300);
+            isOpen = false;
+        });
+        
+        function sendMessage() {
+            var message = input.value.trim();
+            if (!message) return;
+            
+            var rateLimitCheck = rateLimiter.checkLimit();
+            if (!rateLimitCheck.allowed) {
+                addMessage('System', rateLimitCheck.reason, true);
+                return;
+            }
+            
+            addMessage('User', message);
+            input.value = '';
+            rateLimiter.addMessage();
+            
+            // Send to API (implement your API call here)
+            setTimeout(function() {
+                addMessage('Assistant', 'Thank you for your message. Our team will respond shortly.');
+            }, 1000);
+        }
+        
+        function addMessage(sender, text, isError) {
+            var messageDiv = document.createElement('div');
+            messageDiv.style.cssText = \`
+                background: \${isError ? '#ff4757' : (sender === 'User' ? WIDGET_CONFIG.primaryColor : WIDGET_CONFIG.backgroundColor)};
+                color: \${isError || sender === 'User' ? 'white' : WIDGET_CONFIG.textColor};
+                padding: 12px;
+                border-radius: 12px;
+                margin-bottom: 12px;
+                margin-left: \${sender === 'User' ? 'auto' : '0'};
+                margin-right: \${sender === 'User' ? '0' : 'auto'};
+                max-width: 80%;
+            \`;
+            messageDiv.textContent = text;
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+    
+    // Initialize widget when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', createWidget);
+    } else {
+        createWidget();
+    }
+    
+})();`;
     }
     
     updateCodeOutput(code = null) {
@@ -1006,6 +1602,8 @@ ${domainConfigs}
     }
     
     populateForm() {
+        document.getElementById('widgetName').value = this.settings.widgetName;
+        document.getElementById('selectedAgent').value = this.settings.selectedAgent;
         document.getElementById('primaryColor').value = this.settings.primaryColor.includes('rgba') ? '#667eea' : this.settings.primaryColor;
         document.getElementById('position').value = this.settings.position;
         document.getElementById('widgetTitle').value = this.settings.widgetTitle;
@@ -1049,6 +1647,26 @@ function showOutputTab(tab) {
 
 function updateAgentSelection() {
     widgetBuilder.updateAgentSelection();
+}
+
+function updateWidgetName() {
+    widgetBuilder.updateWidgetName();
+}
+
+function saveCurrentWidget() {
+    widgetBuilder.saveCurrentWidget();
+}
+
+function showWidgetsList() {
+    window.location.href = 'widgets-dashboard.html';
+}
+
+function selectHostingOption(option) {
+    widgetBuilder.selectHostingOption(option);
+}
+
+function downloadWidget() {
+    widgetBuilder.downloadWidget();
 }
 
 function addDomain() {

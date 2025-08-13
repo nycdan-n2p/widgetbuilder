@@ -129,6 +129,7 @@
             display: flex;
             align-items: center;
             transition: all 0.2s;
+            text-decoration: none;
         }
 
         .back-btn:hover {
@@ -212,6 +213,19 @@
             background: #2a2a2a;
             padding: 20px 24px 16px 24px;
             border-bottom: 1px solid #404040;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-main {
+            flex: 1;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
         }
 
         .builder-title {
@@ -603,6 +617,98 @@
             font-weight: 500;
         }
 
+        /* Hosting Options */
+        .hosting-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .hosting-option {
+            background: #1a1a1a;
+            border: 2px solid #404040;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .hosting-option:hover {
+            border-color: #4a9eff;
+            background: #2a2a2a;
+        }
+
+        .hosting-option.active {
+            border-color: #4a9eff;
+            background: rgba(74, 158, 255, 0.1);
+        }
+
+        .hosting-option-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .hosting-option input[type="radio"] {
+            margin-top: 2px;
+        }
+
+        .hosting-title {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hosting-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .hosting-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .hosting-badge.recommended {
+            background: #00d67a;
+            color: white;
+        }
+
+        .hosting-badge.advanced {
+            background: #ff9500;
+            color: white;
+        }
+
+        .hosting-description {
+            font-size: 14px;
+            color: #cccccc;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .hosting-features {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .hosting-feature {
+            font-size: 13px;
+            color: #888888;
+        }
+
+        @media (max-width: 800px) {
+            .hosting-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .domain-list {
             max-height: 200px;
             overflow-y: auto;
@@ -782,29 +888,9 @@
             </div>
             
             <div class="nav-section">
-                <div class="nav-item" onclick="showSection('virtual-agents')">
-                    <div class="nav-icon">⚡</div>
-                    <span>Virtual Agents</span>
-                </div>
-                <div class="nav-item" onclick="showSection('knowledge-bases')">
-                    <div class="nav-icon">📚</div>
-                    <span>Knowledge Bases</span>
-                </div>
-                <div class="nav-item" onclick="showSection('tools')">
-                    <div class="nav-icon">🔧</div>
-                    <span>Tools</span>
-                </div>
-                <div class="nav-item" onclick="showSection('phone-numbers')">
-                    <div class="nav-icon">📱</div>
-                    <span>Phone Numbers</span>
-                </div>
-                <div class="nav-item active" onclick="showSection('widget-builder')">
+                <div class="nav-item active">
                     <div class="nav-icon">🎨</div>
                     <span>Widget Builder</span>
-                </div>
-                <div class="nav-item" onclick="showSection('conversation-history')">
-                    <div class="nav-icon">💬</div>
-                    <span>Conversation History</span>
                 </div>
             </div>
         </div>
@@ -814,11 +900,11 @@
             <!-- Header -->
             <div class="header">
                 <div class="header-left">
-                    <button class="back-btn" onclick="goBack()">
+                    <a href="widgets-dashboard.html" class="back-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
                         </svg>
-                    </button>
+                    </a>
                     <div class="header-title">
                         <h1>Widget Builder</h1>
                         <span class="header-badge">Beta</span>
@@ -835,15 +921,27 @@
                 <div class="widget-builder-container">
                     <!-- Builder Header -->
                     <div class="builder-header">
-                        <h2 class="builder-title">Widget Builder</h2>
-                        <p class="builder-subtitle">Create and customize your AI chat widget for embedding on customer websites</p>
+                        <div class="header-main">
+                            <h2 class="builder-title">Widget Builder</h2>
+                            <p class="builder-subtitle">Create and customize your AI chat widget for embedding on customer websites</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="showWidgetsList()">📋 My Widgets</button>
+                            <button class="btn btn-primary" onclick="saveCurrentWidget()">💾 Save Widget</button>
+                        </div>
                     </div>
                     
                     <!-- Builder Content -->
                     <div class="builder-content">
-                        <!-- Agent Selection Section -->
+                        <!-- Widget Info Section -->
                         <div class="form-section">
-                            <h3 class="section-title-main">Agent Selection</h3>
+                            <h3 class="section-title-main">Widget Information</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Widget Name *</label>
+                                <input type="text" id="widgetName" class="form-input" value="My AI Widget" oninput="updateWidgetName()" placeholder="Enter widget name">
+                                <div class="help-text">Give your widget a descriptive name for easy identification</div>
+                            </div>
                             
                             <div class="form-group">
                                 <label class="form-label">Choose AI Agent *</label>
@@ -1015,6 +1113,52 @@
                             </div>
                         </div>
 
+                        <!-- Hosting Options Section -->
+                        <div class="form-section">
+                            <h3 class="section-title-main">Hosting Options</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Widget Hosting</label>
+                                <div class="hosting-options">
+                                    <div class="hosting-option active" id="hostedOption" onclick="selectHostingOption('hosted')">
+                                        <div class="hosting-option-header">
+                                            <input type="radio" name="hosting" value="hosted" checked>
+                                            <div class="hosting-title">
+                                                <span class="hosting-name">Net2Phone Hosted</span>
+                                                <span class="hosting-badge recommended">Recommended</span>
+                                            </div>
+                                        </div>
+                                        <div class="hosting-description">
+                                            Widget loads from our servers. Automatic updates, zero maintenance, and better performance.
+                                        </div>
+                                        <div class="hosting-features">
+                                            <span class="hosting-feature">✅ Auto-updates</span>
+                                            <span class="hosting-feature">✅ CDN delivery</span>
+                                            <span class="hosting-feature">✅ Zero maintenance</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="hosting-option" id="selfHostedOption" onclick="selectHostingOption('self-hosted')">
+                                        <div class="hosting-option-header">
+                                            <input type="radio" name="hosting" value="self-hosted">
+                                            <div class="hosting-title">
+                                                <span class="hosting-name">Self-Hosted</span>
+                                                <span class="hosting-badge advanced">Advanced</span>
+                                            </div>
+                                        </div>
+                                        <div class="hosting-description">
+                                            Download widget.js and host it on your own servers. Full control but requires manual updates.
+                                        </div>
+                                        <div class="hosting-features">
+                                            <span class="hosting-feature">⚠️ Manual updates</span>
+                                            <span class="hosting-feature">🔧 Custom hosting</span>
+                                            <span class="hosting-feature">💼 Full control</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Output Tabs Section -->
                         <div class="form-section">
                             <div style="display: flex; gap: 12px; margin-bottom: 20px;">
@@ -1026,7 +1170,10 @@
                             <div id="codeTabContent">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                                     <h3 class="section-title-main">Generated Code</h3>
-                                    <button class="btn btn-primary" onclick="copyCode()">📋 Copy Code</button>
+                                    <div style="display: flex; gap: 12px;">
+                                        <button class="btn btn-secondary" id="downloadWidgetBtn" onclick="downloadWidget()" style="display: none;">📥 Download Widget</button>
+                                        <button class="btn btn-primary" onclick="copyCode()">📋 Copy Code</button>
+                                    </div>
                                 </div>
                                 
                                 <div class="code-display" id="codeOutput">
