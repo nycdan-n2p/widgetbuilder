@@ -2,37 +2,54 @@
 
 ## 📋 Overview
 
-The widget frontend is complete, but we need to build the backend API system to handle token management, security enforcement, and chat processing. This document outlines the required backend components.
+**UPDATED FOR SECURITY**: The widget frontend has been updated to eliminate client-side token exposure and implement proper server-side security validation. This document outlines the required backend components for a secure implementation.
+
+## 🔒 Security Model
+
+**CRITICAL**: The new security model eliminates client-side tokens and relies entirely on server-side validation:
+
+- **No client tokens**: Widgets authenticate via domain validation only
+- **Server-side security**: All rate limiting, domain validation, and security checks happen server-side
+- **Immutable config**: Widget configuration is protected from client-side tampering
+- **HTTPS only**: All communication is encrypted
+- **SRI protection**: Hosted widgets use Subresource Integrity
 
 ## 🎯 Required Components
 
-### 1. Token Management System
+### 1. Domain-Based Authentication System
 ### 2. Widget Chat API with Security
-### 3. Rate Limiting & Abuse Prevention
+### 3. Rate Limiting & Abuse Prevention  
 ### 4. Admin Dashboard API
 ### 5. Analytics & Monitoring
 
 ---
 
-## 🔑 1. Token Management System
+## 🔑 1. Domain-Based Authentication System
 
 ### Database Schema
 
-#### `widget_tokens` Table
+#### `widget_configs` Table (Replaces token-based system)
 ```sql
-CREATE TABLE widget_tokens (
+CREATE TABLE widget_configs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    token VARCHAR(64) UNIQUE NOT NULL,
-    domain VARCHAR(255) NOT NULL,
+    widget_id VARCHAR(64) UNIQUE NOT NULL,
+    widget_name VARCHAR(255) NOT NULL,
+    
+    -- Owner/admin info
+    user_id BIGINT NOT NULL,
+    agent_id VARCHAR(64) NOT NULL,
+    
+    -- Security: domain allowlist (NO TOKENS)
+    allowed_domains JSON NOT NULL, -- Array of authorized domains
+    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    revoked BOOLEAN DEFAULT FALSE,
-    revoked_at TIMESTAMP NULL,
+    is_active BOOLEAN DEFAULT TRUE,
     
-    -- Security limits (enforced server-side)
-    max_messages_per_minute INT DEFAULT 10,
-    max_messages_per_hour INT DEFAULT 50,
-    max_messages_per_day INT DEFAULT 200,
+    -- Security limits (enforced server-side ONLY)
+    max_messages_per_minute INT DEFAULT 10 CHECK (max_messages_per_minute > 0),
+    max_messages_per_hour INT DEFAULT 600 CHECK (max_messages_per_hour >= max_messages_per_minute * 60),
+    max_messages_per_day INT DEFAULT 1000,
     max_message_length INT DEFAULT 2000,
     min_message_interval INT DEFAULT 2000, -- milliseconds
     max_conversation_length INT DEFAULT 100,
@@ -41,9 +58,13 @@ CREATE TABLE widget_tokens (
     -- Widget customization
     settings JSON, -- Store widget appearance/config
     
-    INDEX idx_token (token),
-    INDEX idx_domain (domain),
-    INDEX idx_revoked (revoked)
+    INDEX idx_widget_id (widget_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_agent_id (agent_id),
+    INDEX idx_active (is_active),
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE RESTRICT
 );
 ```
 
@@ -96,17 +117,20 @@ CREATE TABLE security_events (
 
 ### Required API Endpoints
 
-#### Create Token
+#### Create Widget Configuration
 ```http
-POST /api/admin/tokens
+POST /api/admin/widgets
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
 {
-    "domain": "customer-website.com",
+    "widget_id": "widget_abc123_def456",
+    "widget_name": "Customer Support Widget",
+    "agent_id": "boss-support",
+    "allowed_domains": ["customer-website.com", "app.customer.com"],
     "settings": {
-        "maxMessagesPerHour": 50,
-        "maxMessagesPerDay": 200,
+        "maxMessagesPerHour": 600,
+        "maxMessagesPerDay": 1000,
         "primaryColor": "#667eea",
         "greeting": "Hi! How can I help?",
         // ... other widget settings
@@ -116,15 +140,15 @@ Content-Type: application/json
 Response:
 {
     "success": true,
-    "token": "dwt_lm2a3x4b_ZXhhbX_k8n9m2q",
-    "domain": "customer-website.com",
+    "widget_id": "widget_abc123_def456",
+    "allowed_domains": ["customer-website.com", "app.customer.com"],
     "created_at": "2024-01-15T10:30:00Z"
 }
 ```
 
-#### List Tokens
+#### List Widget Configurations
 ```http
-GET /api/admin/tokens?domain=customer.com&page=1&limit=50
+GET /api/admin/widgets?user_id=123&page=1&limit=50
 Authorization: Bearer <admin_token>
 
 Response:
@@ -162,17 +186,20 @@ Response:
 
 ## 💬 2. Widget Chat API with Security
 
+**SECURITY CRITICAL**: No tokens in requests. Domain validation and rate limiting enforced server-side.
+
 ### Main Chat Endpoint
 ```http
 POST /api/chat
-Authorization: Bearer <widget_token>
 Content-Type: application/json
+Origin: https://customer-website.com
 Referer: https://customer-website.com
+X-Widget-ID: widget_abc123_def456
 
 {
     "message": "Hello, I need help with my order",
     "conversation_id": "conv_1642251000_abc123",
-    "domain": "customer-website.com"
+    "widget_id": "widget_abc123_def456"
 }
 
 Response (Success):
@@ -208,44 +235,50 @@ Response (Blocked):
 }
 ```
 
-### Security Middleware (Required)
+### Security Validation (CRITICAL - Server-Side Only)
 ```javascript
 // Pseudocode - implement in your language/framework
 async function validateWidgetRequest(req, res, next) {
     try {
-        // 1. Extract token and domain
-        const token = extractBearerToken(req.headers.authorization);
+        // 1. Extract domain and widget info
+        const widgetId = req.body.widget_id || req.headers['x-widget-id'];
+        const origin = req.headers.origin;
         const referer = req.headers.referer;
-        const domain = extractDomain(referer);
+        const domain = extractDomain(origin || referer);
         const clientIP = getClientIP(req);
         
-        // 2. Validate token format
-        if (!isValidTokenFormat(token)) {
-            await logSecurityEvent(token, domain, 'invalid_token', { ip: clientIP });
-            return res.status(401).json({ error: 'invalid_token' });
+        // 2. Validate widget ID format
+        if (!isValidWidgetId(widgetId)) {
+            await logSecurityEvent(null, domain, 'invalid_widget_id', { ip: clientIP, widget_id: widgetId });
+            return res.status(400).json({ error: 'invalid_widget_id' });
         }
         
-        // 3. Check token in database
-        const tokenRecord = await db.findToken(token);
-        if (!tokenRecord || tokenRecord.revoked) {
-            await logSecurityEvent(token, domain, 'invalid_token', { ip: clientIP });
-            return res.status(401).json({ error: 'token_not_found_or_revoked' });
+        // 3. Find widget configuration in database
+        const widgetConfig = await db.findWidgetConfig(widgetId);
+        if (!widgetConfig || !widgetConfig.is_active) {
+            await logSecurityEvent(widgetId, domain, 'widget_not_found', { ip: clientIP });
+            return res.status(404).json({ error: 'widget_not_found_or_inactive' });
         }
         
-        // 4. Validate domain matches
-        if (domain !== tokenRecord.domain) {
-            await logSecurityEvent(token, domain, 'domain_mismatch', { 
-                expected: tokenRecord.domain, 
-                actual: domain,
+        // 4. Validate domain is in allowlist (CRITICAL SECURITY)
+        const isAllowedDomain = widgetConfig.allowed_domains.some(allowedDomain => {
+            // Exact match or subdomain match
+            return domain === allowedDomain || domain.endsWith('.' + allowedDomain);
+        });
+        
+        if (!isAllowedDomain) {
+            await logSecurityEvent(widgetId, domain, 'domain_not_allowed', { 
+                allowed_domains: widgetConfig.allowed_domains, 
+                actual_domain: domain,
                 ip: clientIP 
             });
-            return res.status(403).json({ error: 'domain_mismatch' });
+            return res.status(403).json({ error: 'domain_not_authorized' });
         }
         
-        // 5. Check rate limits
-        const rateLimitResult = await checkRateLimit(token, domain);
+        // 5. Check rate limits (SERVER ENFORCED)
+        const rateLimitResult = await checkRateLimit(widgetId, domain, widgetConfig);
         if (rateLimitResult.blocked) {
-            await logSecurityEvent(token, domain, 'rate_limit', { 
+            await logSecurityEvent(widgetId, domain, 'rate_limit', { 
                 limit_type: rateLimitResult.limit_type,
                 ip: clientIP 
             });
@@ -258,9 +291,18 @@ async function validateWidgetRequest(req, res, next) {
         
         // 6. Content filtering
         const message = req.body.message;
+        if (message.length > widgetConfig.max_message_length) {
+            await logSecurityEvent(widgetId, domain, 'message_too_long', { 
+                length: message.length,
+                max_allowed: widgetConfig.max_message_length,
+                ip: clientIP 
+            });
+            return res.status(400).json({ error: 'message_too_long' });
+        }
+        
         const contentCheck = await filterSuspiciousContent(message);
         if (!contentCheck.allowed) {
-            await logSecurityEvent(token, domain, 'suspicious_content', { 
+            await logSecurityEvent(widgetId, domain, 'suspicious_content', { 
                 message: message.substring(0, 100),
                 reason: contentCheck.reason,
                 ip: clientIP 
@@ -272,10 +314,10 @@ async function validateWidgetRequest(req, res, next) {
         }
         
         // 7. Update usage counters
-        await updateUsageCounters(token, domain);
+        await updateUsageCounters(widgetId, domain);
         
         // 8. Add validated data to request
-        req.widgetToken = tokenRecord;
+        req.widgetConfig = widgetConfig;
         req.validatedDomain = domain;
         req.clientIP = clientIP;
         
