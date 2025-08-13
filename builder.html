@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Widget Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 30px;
+            min-height: calc(100vh - 40px);
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .color-input {
+            width: 100%;
+            height: 48px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            padding: 6px 12px;
+            width: auto;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .domain-section {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .domain-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .domain-input-group input {
+            flex: 1;
+        }
+
+        .domain-input-group button {
+            width: auto;
+            padding: 12px 20px;
+            margin: 0;
+        }
+
+        .domain-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .domain-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .domain-info {
+            flex: 1;
+        }
+
+        .domain-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .domain-token {
+            font-family: 'Monaco', monospace;
+            font-size: 11px;
+            color: #64748b;
+            word-break: break-all;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .output-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .code-display {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 24px;
+            border-radius: 16px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .instructions {
+            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+            border: 2px solid #bfdbfe;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h3 {
+            margin: 0 0 12px 0;
+            color: #1e40af;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .instructions ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #1e40af;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .preview-section {
+            border-top: 2px solid #f1f5f9;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .theme-presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .theme-preset {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .theme-preset:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .theme-preset.active {
+            border-color: #667eea;
+            background: #f8fafc;
+        }
+
+        .theme-preview {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+            justify-content: center;
+        }
+
+        .theme-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .content-tabs {
+            display: flex;
+            border-bottom: 2px solid #f1f5f9;
+            margin-bottom: 20px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+            border-radius: 12px 12px 0 0;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .preview-container {
+            position: relative;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 40px 20px;
+            min-height: 500px;
+            border: 2px dashed #cbd5e1;
+            overflow: hidden;
+        }
+
+        .preview-background-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #94a3b8;
+            font-size: 14px;
+            text-align: center;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .preview-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .sidebar, .main-content {
+                border-radius: 16px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>🤖 AI Widget Builder</h1>
+                <p>Create beautiful AI chat widgets for your websites</p>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🌐 Domain Management</div>
+                <div class="domain-section">
+                    <div class="domain-input-group">
+                        <input type="text" id="domainInput" class="form-input" placeholder="yoursite.com">
+                        <button class="btn" onclick="widgetBuilder.addDomain()">Add</button>
+                    </div>
+                    
+                    <div class="domain-list" id="domainList">
+                        <div class="empty-state">No domains added yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🎨 Appearance</div>
+                
+                <!-- Theme Presets -->
+                <div class="form-group">
+                    <label class="form-label">Theme Presets</label>
+                    <div class="theme-presets">
+                        <button type="button" class="theme-preset" data-theme="default" onclick="widgetBuilder.applyTheme('default')">
+                            <div class="theme-preview">
+                                <div class="theme-color" style="background: #667eea;"></div>
+                                <div class="theme-color" style="background: #f3f4f6;"></div>
+                                <div class="theme-color" style="background: #ffffff;"></div>
+                            </div>
+                            <span>Default</span>
+                        </button>
+                        
+                        <button type="button" class="theme-preset" data-theme="dark" onclick="widgetBuilder.applyTheme('dark')">
+                            <div class="theme-preview">
+                                <div class="theme-color" style="background: #1f2937;"></div>
+                                <div class="theme-color" style="background: #374151;"></div>
+                                <div class="theme-color" style="background: #4b5563;"></div>
+                            </div>
+                            <span>Dark</span>
+                        </button>
+                        
+                        <button type="button" class="theme-preset" data-theme="ocean" onclick="widgetBuilder.applyTheme('ocean')">
+                            <div class="theme-preview">
+                                <div class="theme-color" style="background: #0891b2;"></div>
+                                <div class="theme-color" style="background: #e0f2fe;"></div>
+                                <div class="theme-color" style="background: #ffffff;"></div>
+                            </div>
+                            <span>Ocean</span>
+                        </button>
+                        
+                        <button type="button" class="theme-preset" data-theme="glassmorphic" onclick="widgetBuilder.applyTheme('glassmorphic')">
+                            <div class="theme-preview">
+                                <div class="theme-color" style="background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2));"></div>
+                                <div class="theme-color" style="background: rgba(255,255,255,0.05);"></div>
+                                <div class="theme-color" style="background: rgba(255,255,255,0.1);"></div>
+                            </div>
+                            <span>Glass</span>
+                        </button>
+                        
+                        <button type="button" class="theme-preset" data-theme="sunset" onclick="widgetBuilder.applyTheme('sunset')">
+                            <div class="theme-preview">
+                                <div class="theme-color" style="background: #f59e0b;"></div>
+                                <div class="theme-color" style="background: #fef3c7;"></div>
+                                <div class="theme-color" style="background: #fffbeb;"></div>
+                            </div>
+                            <span>Sunset</span>
+                        </button>
+                        
+                        <button type="button" class="theme-preset" data-theme="forest" onclick="widgetBuilder.applyTheme('forest')">
+                            <div class="theme-preview">
+                                <div class="theme-color" style="background: #059669;"></div>
+                                <div class="theme-color" style="background: #d1fae5;"></div>
+                                <div class="theme-color" style="background: #f0fdf4;"></div>
+                            </div>
+                            <span>Forest</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Custom Colors -->
+                <div class="form-group">
+                    <label class="form-label">Primary Color</label>
+                    <input type="color" id="primaryColor" class="color-input" value="#667eea" onchange="widgetBuilder.updateSettings()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Secondary Color</label>
+                    <input type="color" id="secondaryColor" class="color-input" value="#f3f4f6" onchange="widgetBuilder.updateSettings()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Background Color</label>
+                    <input type="color" id="backgroundColor" class="color-input" value="#ffffff" onchange="widgetBuilder.updateSettings()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Text Color</label>
+                    <input type="color" id="textColor" class="color-input" value="#1f2937" onchange="widgetBuilder.updateSettings()">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Position</label>
+                    <select id="position" class="form-select" onchange="widgetBuilder.updateSettings()">
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="top-right">Top Right</option>
+                        <option value="top-left">Top Left</option>
+                    </select>
+                </div>
+                
+                <!-- Style Options -->
+                <div class="form-group">
+                    <label class="form-label">Widget Style</label>
+                    <select id="widgetStyle" class="form-select" onchange="widgetBuilder.updateSettings()">
+                        <option value="modern">Modern</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="glassmorphic">Glassmorphic</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">💬 Content</div>
+                <div class="form-group">
+                    <label class="form-label">Widget Title</label>
+                    <input type="text" id="widgetTitle" class="form-input" value="AI Assistant" oninput="widgetBuilder.updateSettings()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Greeting Message</label>
+                    <input type="text" id="greeting" class="form-input" value="Hi! How can I help you today?" oninput="widgetBuilder.updateSettings()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Placeholder Text</label>
+                    <input type="text" id="placeholder" class="form-input" value="Type your message..." oninput="widgetBuilder.updateSettings()">
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">🛡️ Security Settings</div>
+                <div class="form-group">
+                    <label class="form-label">Max Messages Per Hour</label>
+                    <input type="number" id="maxMessages" class="form-input" value="50" min="5" max="100" oninput="widgetBuilder.updateSettings()">
+                    <small style="color: #64748b; font-size: 12px;">Range: 5-100 (enforced for security)</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Messages Per Minute</label>
+                    <input type="number" id="maxMessagesPerMinute" class="form-input" value="10" min="1" max="20" oninput="widgetBuilder.updateSettings()">
+                    <small style="color: #64748b; font-size: 12px;">Range: 1-20 (enforced for security)</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Daily Messages</label>
+                    <input type="number" id="maxDailyMessages" class="form-input" value="200" min="10" max="500" oninput="widgetBuilder.updateSettings()">
+                    <small style="color: #64748b; font-size: 12px;">Range: 10-500 (enforced for security)</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message Cooldown (seconds)</label>
+                    <input type="number" id="minMessageInterval" class="form-input" value="2" min="1" max="10" step="0.5" oninput="widgetBuilder.updateSettings()">
+                    <small style="color: #64748b; font-size: 12px;">Range: 1-10 seconds between messages</small>
+                </div>
+            </div>
+
+            <button class="btn btn-success" onclick="widgetBuilder.generateCode()">⚡ Generate Widget Code</button>
+        </div>
+
+        <div class="main-content">
+            <div class="instructions">
+                <h3>📋 How to Use This Code</h3>
+                <ul>
+                    <li>Add at least one domain to generate widget code</li>
+                    <li>Copy the generated code and paste it into your website before the closing &lt;/body&gt; tag</li>
+                    <li>Upload the widget.js file to your web server</li>
+                    <li>The widget will only work on your configured domains</li>
+                </ul>
+            </div>
+
+            <div class="content-tabs">
+                <button class="tab-btn active" onclick="widgetBuilder.showTab('code')">📝 Generated Code</button>
+                <button class="tab-btn" onclick="widgetBuilder.showTab('preview')">👁️ Live Preview</button>
+            </div>
+
+            <div class="tab-content active" id="codeTab">
+                <div class="output-header">
+                    <div class="output-title">Generated Widget Code</div>
+                    <button class="copy-btn" onclick="widgetBuilder.copyCode()">📋 Copy Code</button>
+                </div>
+
+                <div class="code-display" id="codeOutput">
+                    Add at least one domain to generate your widget code...
+                </div>
+            </div>
+
+            <div class="tab-content" id="previewTab">
+                <div class="output-header">
+                    <div class="output-title">Live Widget Preview</div>
+                    <div class="preview-controls">
+                        <button class="copy-btn" onclick="widgetBuilder.toggleWidget()" id="toggleWidgetBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Open Widget</button>
+                    </div>
+                </div>
+
+                <div class="preview-container" id="livePreviewContainer">
+                    <div class="preview-background-text">
+                        Your website background<br>
+                        <small>Click "Open Widget" to test the chat interface</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="builder.js"></script>
+</body>
+</html>
