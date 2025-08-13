@@ -1551,8 +1551,11 @@ ${domainConfigs}
     
     // Navigation and UI
     highlightActiveNav() {
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        document.querySelector('[onclick="showSection(\'widget-builder\')"]').classList.add('active');
+        // Ensure nav item is active - simplified for single nav item
+        const navItem = document.querySelector('.nav-item');
+        if (navItem) {
+            navItem.classList.add('active');
+        }
     }
     
     showNotification(message, type = 'info') {
@@ -1662,35 +1665,63 @@ function showWidgetsList() {
 }
 
 function selectHostingOption(option) {
-    widgetBuilder.selectHostingOption(option);
+    if (widgetBuilder) {
+        widgetBuilder.selectHostingOption(option);
+    }
 }
 
 function downloadWidget() {
-    widgetBuilder.downloadWidget();
+    if (widgetBuilder) {
+        widgetBuilder.downloadWidget();
+    }
 }
 
 function addDomain() {
-    widgetBuilder.addDomain();
+    if (widgetBuilder) {
+        widgetBuilder.addDomain();
+    }
 }
 
 function applyTheme(theme) {
-    widgetBuilder.applyTheme(theme);
+    if (widgetBuilder) {
+        widgetBuilder.applyTheme(theme);
+    }
 }
 
 function updateSettings() {
-    widgetBuilder.updateSettings();
+    if (widgetBuilder) {
+        widgetBuilder.updateSettings();
+    }
 }
 
 function generateWidget() {
-    widgetBuilder.generateWidget();
+    if (widgetBuilder) {
+        widgetBuilder.generateWidget();
+    }
 }
 
 function copyCode() {
-    widgetBuilder.copyCode();
+    if (widgetBuilder) {
+        widgetBuilder.copyCode();
+    }
 }
 
 function toggleWidget() {
-    widgetBuilder.toggleWidget();
+    if (widgetBuilder) {
+        widgetBuilder.toggleWidget();
+    }
+}
+
+function updateWidgetName() {
+    if (widgetBuilder) {
+        widgetBuilder.updateWidgetName();
+    }
+}
+
+function saveCurrentWidget() {
+    if (widgetBuilder) {
+        widgetBuilder.saveCurrentWidget();
+    }
 }
 
 // Initialize
