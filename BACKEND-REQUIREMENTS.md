@@ -21,6 +21,7 @@
 ### 3. Rate Limiting & Abuse Prevention  
 ### 4. Admin Dashboard API
 ### 5. Analytics & Monitoring
+### 6. Production Security Requirements
 
 ---
 
@@ -623,6 +624,253 @@ COOLDOWN_PERIOD_MINUTES=5
 3. **Deployment Guide** 
 4. **Monitoring Setup Guide**
 5. **Security Incident Response Procedures**
+
+---
+
+## 🛡️ 6. Production Security Requirements
+
+**CRITICAL**: These security measures must be implemented during deployment to ensure production-ready security.
+
+### 6.1 Infrastructure Security
+
+#### Required Security Headers
+```nginx
+# Nginx configuration example
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://aiagent.net2phone.com; connect-src 'self' https://aiagent.net2phone.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none';" always;
+add_header X-Frame-Options "DENY" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+```
+
+#### TLS Configuration
+```nginx
+# Minimum TLS 1.2, prefer TLS 1.3
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+ssl_prefer_server_ciphers off;
+ssl_session_timeout 1d;
+ssl_session_cache shared:MozTLS:10m;
+ssl_session_tickets off;
+```
+
+### 6.2 Application Security
+
+#### CSRF Protection
+```javascript
+// Add CSRF middleware to all state-changing endpoints
+app.use('/api', csrfProtection);
+
+// For CORS requests, use SameSite cookies
+app.use(session({
+  cookie: {
+    sameSite: 'strict',
+    secure: true, // HTTPS only
+    httpOnly: true
+  }
+}));
+```
+
+#### Input Validation Schema
+```javascript
+// Example validation schema for chat endpoint
+const chatSchema = {
+  widget_id: {
+    type: 'string',
+    pattern: '^widget_[a-z0-9_]{12,64}$',
+    maxLength: 100
+  },
+  message: {
+    type: 'string',
+    minLength: 1,
+    maxLength: 2000,
+    sanitize: true
+  },
+  conversation_id: {
+    type: 'string',
+    pattern: '^conv_[a-z0-9_]{12,64}$',
+    maxLength: 100
+  }
+};
+```
+
+### 6.3 Security Monitoring & Alerting
+
+#### Required Security Events to Monitor
+```yaml
+# Security events that MUST trigger alerts
+critical_events:
+  - rate_limit_exceeded: > 100 events/minute
+  - domain_not_allowed: > 50 events/minute  
+  - suspicious_content: > 10 events/minute
+  - widget_not_found: > 200 events/minute
+  - message_too_long: > 50 events/minute
+  - multiple_failed_validations: > 5 from same IP/minute
+
+# Log aggregation required
+log_destinations:
+  - SIEM system (Splunk/ELK)
+  - Security monitoring (DataDog/NewRelic)
+  - Incident response system
+```
+
+#### Real-time Monitoring Dashboard
+```javascript
+// Required monitoring metrics
+const securityMetrics = {
+  // Rate limiting effectiveness
+  'rate_limit.blocked_requests_per_minute': 'counter',
+  'rate_limit.legitimate_requests_per_minute': 'counter',
+  
+  // Domain validation
+  'domain.validation_failures_per_minute': 'counter',
+  'domain.new_unauthorized_domains': 'counter',
+  
+  // Content filtering
+  'content.suspicious_messages_blocked': 'counter',
+  'content.false_positive_rate': 'gauge',
+  
+  // System security
+  'security.failed_authentications': 'counter',
+  'security.anomalous_traffic_patterns': 'gauge'
+};
+```
+
+### 6.4 Incident Response Procedures
+
+#### Security Incident Runbook
+```markdown
+## SECURITY INCIDENT RESPONSE PLAN
+
+### Level 1: Automated Response (< 1 minute)
+1. Rate limiting triggered → Block IP/domain automatically
+2. Suspicious content detected → Block message, log details
+3. Domain validation failure → Reject request, alert security team
+
+### Level 2: Manual Investigation (< 15 minutes) 
+1. Review security event logs
+2. Analyze attack patterns
+3. Determine if additional blocking needed
+4. Notify stakeholders if widespread
+
+### Level 3: Security Breach (< 1 hour)
+1. Activate incident response team
+2. Preserve evidence and logs
+3. Implement emergency blocks
+4. Notify legal/compliance teams
+5. Begin forensic analysis
+
+### Communication Plan
+- Internal: Slack #security-incidents
+- External: security@company.com  
+- Escalation: CISO within 2 hours
+```
+
+### 6.5 Data Privacy & Compliance
+
+#### GDPR/CCPA Requirements
+```sql
+-- Data retention policies
+CREATE EVENT gdpr_cleanup
+ON SCHEDULE EVERY 24 HOUR
+DO
+  DELETE FROM chat_conversations 
+  WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+  AND user_consent_withdrawn = 1;
+
+-- User data export capability
+CREATE PROCEDURE export_user_data(user_domain VARCHAR(255))
+BEGIN
+  SELECT * FROM chat_conversations WHERE domain = user_domain;
+  SELECT * FROM usage_tracking WHERE domain = user_domain;
+END;
+```
+
+#### Privacy-by-Design Implementation
+```javascript
+// Automatic PII detection and removal
+function sanitizeMessage(message) {
+  // Remove email addresses
+  message = message.replace(/\S+@\S+\.\S+/g, '[EMAIL_REDACTED]');
+  
+  // Remove phone numbers
+  message = message.replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, '[PHONE_REDACTED]');
+  
+  // Remove credit card numbers
+  message = message.replace(/\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b/g, '[CC_REDACTED]');
+  
+  return message;
+}
+```
+
+### 6.6 Dependency Security
+
+#### Required Security Scanning
+```yaml
+# GitHub Actions workflow for security scanning
+name: Security Scan
+on: [push, pull_request]
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run dependency audit
+        run: npm audit --audit-level=moderate
+      - name: Run SAST scan
+        uses: github/codeql-action/analyze@v2
+      - name: Run container scan
+        uses: anchore/scan-action@v3
+```
+
+#### Dependency Management Policy
+```json
+{
+  "security_policy": {
+    "allowed_licenses": ["MIT", "Apache-2.0", "BSD-3-Clause"],
+    "blocked_packages": ["lodash <4.17.19", "moment <2.29.2"],
+    "vulnerability_threshold": "moderate",
+    "auto_update": {
+      "security_updates": true,
+      "major_versions": false
+    }
+  }
+}
+```
+
+### 6.7 Deployment Security Checklist
+
+#### Pre-Deployment Security Verification
+- [ ] All security headers configured
+- [ ] TLS 1.3 enabled with strong cipher suites
+- [ ] CSRF protection enabled on all endpoints
+- [ ] Input validation implemented for all endpoints
+- [ ] Rate limiting configured and tested
+- [ ] Security monitoring alerts configured
+- [ ] Incident response procedures documented
+- [ ] PII detection and removal implemented
+- [ ] Dependency vulnerabilities resolved
+- [ ] Security penetration testing completed
+- [ ] GDPR/CCPA compliance verified
+- [ ] Backup and disaster recovery tested
+- [ ] Security audit logs configured
+- [ ] Error messages sanitized (no info disclosure)
+- [ ] Database queries parameterized (no SQL injection)
+- [ ] File upload restrictions implemented (if applicable)
+
+#### Post-Deployment Security Monitoring
+- [ ] Security dashboard operational
+- [ ] Alerting system tested and functional
+- [ ] Log aggregation working
+- [ ] Incident response team briefed
+- [ ] Regular security review schedule established
+- [ ] Vulnerability scanning automated
+- [ ] Security metrics baseline established
+
+---
+
+**⚠️ WARNING**: Do not deploy to production without implementing ALL security requirements above. This system handles user data and API access - security is not optional.
 
 ---
 
