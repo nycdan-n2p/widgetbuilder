@@ -62,6 +62,30 @@ function App(): JSX.Element {
     }));
   };
 
+  const themePresets = {
+    light: {
+      primaryColor: '#4F46E5',
+      backgroundColor: '#FFFFFF',
+      textColor: '#1F2937',
+      secondaryColor: '#F3F4F6'
+    },
+    dark: {
+      primaryColor: '#6366F1',
+      backgroundColor: '#1F2937',
+      textColor: '#F9FAFB',
+      secondaryColor: '#374151'
+    }
+  };
+
+  const applyTheme = (theme: 'light' | 'dark') => {
+    const preset = themePresets[theme];
+    setWidgetSettings(prev => ({
+      ...prev,
+      currentTheme: theme,
+      ...preset
+    }));
+  };
+
   const generateWidget = () => {
     const widgetCode = `<!-- Net2Phone AI Widget -->
 <div id="net2phone-widget-${Date.now()}"></div>
@@ -193,8 +217,8 @@ function App(): JSX.Element {
       <h3 className="text-white text-lg font-medium mb-4">Theme</h3>
       <div className="grid grid-cols-2 gap-4">
         <div 
-          onClick={() => updateSetting('currentTheme', 'light')}
-          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${widgetSettings.currentTheme === 'light' ? 'border-blue-400' : 'border-transparent'}`}
+          onClick={() => applyTheme('light')}
+          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 transition-all hover:bg-gray-600 ${widgetSettings.currentTheme === 'light' ? 'border-blue-400' : 'border-transparent'}`}
         >
           {widgetSettings.currentTheme === 'light' && (
             <div className="absolute top-2 right-2 w-5 h-5 bg-blue-400 rounded-full flex items-center justify-center">
@@ -202,30 +226,38 @@ function App(): JSX.Element {
             </div>
           )}
           <div className="bg-gray-200 rounded-lg p-3 mb-2">
-            <div className="bg-black text-white text-xs px-2 py-1 rounded-full inline-flex items-center space-x-1">
+            <div 
+              className="text-white text-xs px-2 py-1 rounded-full inline-flex items-center space-x-1"
+              style={{ backgroundColor: themePresets.light.primaryColor }}
+            >
               <span>👋</span>
               <span>Hey 👋 May I help you?</span>
             </div>
           </div>
           <p className="text-gray-300 text-sm">Light Theme</p>
+          <p className="text-gray-500 text-xs mt-1">White background, dark text</p>
         </div>
         
         <div 
-          onClick={() => updateSetting('currentTheme', 'dark')}
-          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${widgetSettings.currentTheme === 'dark' ? 'border-blue-400' : 'border-transparent'}`}
+          onClick={() => applyTheme('dark')}
+          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 transition-all hover:bg-gray-600 ${widgetSettings.currentTheme === 'dark' ? 'border-blue-400' : 'border-transparent'}`}
         >
           {widgetSettings.currentTheme === 'dark' && (
             <div className="absolute top-2 right-2 w-5 h-5 bg-blue-400 rounded-full flex items-center justify-center">
               <Check className="w-3 h-3 text-white" />
             </div>
           )}
-          <div className="bg-gray-500 rounded-lg p-3 mb-2">
-            <div className="bg-white text-black text-xs px-2 py-1 rounded-full inline-flex items-center space-x-1">
+          <div className="bg-gray-800 rounded-lg p-3 mb-2">
+            <div 
+              className="text-white text-xs px-2 py-1 rounded-full inline-flex items-center space-x-1"
+              style={{ backgroundColor: themePresets.dark.primaryColor }}
+            >
               <span>👋</span>
               <span>Hey 👋 May I help you?</span>
             </div>
           </div>
           <p className="text-gray-300 text-sm">Dark Theme</p>
+          <p className="text-gray-500 text-xs mt-1">Dark background, light text</p>
         </div>
       </div>
     </div>
