@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ArrowLeft, 
   Check,
@@ -13,7 +13,9 @@ import {
   Palette,
   RefreshCw,
   Download,
-  Eye
+  Eye,
+  Send,
+  Minimize2
 } from 'lucide-react';
 
 function App(): JSX.Element {
@@ -35,6 +37,11 @@ function App(): JSX.Element {
 
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [chatMessages, setChatMessages] = useState<Array<{id: number, text: string, isUser: boolean, timestamp: Date}>>([]);
+  const [inputMessage, setInputMessage] = useState<string>('');
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const colors = [
     '#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a',
@@ -129,6 +136,69 @@ function App(): JSX.Element {
     URL.revokeObjectURL(url);
   };
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
+
+  const simulateAIResponse = async (userMessage: string) => {
+    setIsTyping(true);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    
+    const responses = [
+      "Thanks for reaching out! I'm here to help you with any questions about our services.",
+      "I understand your inquiry. Let me provide you with the information you need.",
+      "That's a great question! Our team specializes in providing solutions for exactly this type of need.",
+      "I'd be happy to assist you with that. Our AI-powered platform can help streamline your communications.",
+      "Thank you for your interest! Let me connect you with the right resources to get this resolved quickly."
+    ];
+    
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    
+    setIsTyping(false);
+    setChatMessages(prev => [...prev, {
+      id: Date.now(),
+      text: randomResponse,
+      isUser: false,
+      timestamp: new Date()
+    }]);
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+    
+    // Add user message
+    const userMsg = {
+      id: Date.now(),
+      text: inputMessage,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMsg]);
+    setInputMessage('');
+    
+    // Simulate AI response (or call real API if key exists)
+    if (apiKey && apiKey.length > 10) {
+      // TODO: Call real N2P AI API
+      console.log('Would call N2P AI with API key:', apiKey);
+      simulateAIResponse(inputMessage);
+    } else {
+      simulateAIResponse(inputMessage);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
+
   const renderWidgetPreview = () => {
     const buttonStyle = buttonStyles[widgetSettings.buttonStyle as keyof typeof buttonStyles];
     const isCircle = buttonStyle?.shape === 'circle';
@@ -136,77 +206,175 @@ function App(): JSX.Element {
     
     return (
       <div className="fixed bottom-6 right-6 z-50">
-        {/* Widget Chat Window (if open) */}
+        {/* Modern Chat Window */}
         {showPreview && (
-          <div 
-            className="mb-4 w-80 h-96 rounded-lg shadow-2xl border border-gray-300 overflow-hidden"
-            style={{ backgroundColor: widgetSettings.backgroundColor }}
-          >
-            {/* Chat Header */}
-            <div 
-              className="p-4 border-b flex items-center justify-between"
-              style={{ 
-                backgroundColor: widgetSettings.primaryColor,
-                color: widgetSettings.currentTheme === 'light' ? '#ffffff' : widgetSettings.textColor 
-              }}
-            >
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <Bot className="w-4 h-4" />
+          <div className="mb-4 w-96 h-[500px] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm border border-white border-opacity-20"
+               style={{ 
+                 backgroundColor: widgetSettings.currentTheme === 'dark' ? widgetSettings.backgroundColor : '#FFFFFF',
+                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+               }}>
+            
+            {/* Header */}
+            <div className="p-4 backdrop-blur-sm border-b border-white border-opacity-10"
+                 style={{ 
+                   background: `linear-gradient(135deg, ${widgetSettings.primaryColor}ee, ${widgetSettings.primaryColor}dd)`,
+                 }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">{widgetSettings.widgetTitle}</div>
+                    <div className="text-white text-opacity-80 text-xs">Online • Powered by N2P AI</div>
+                  </div>
                 </div>
-                <span className="font-medium">{widgetSettings.widgetTitle}</span>
+                <button 
+                  onClick={() => setShowPreview(false)}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </button>
               </div>
-              <button 
-                onClick={() => setShowPreview(false)}
-                className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
-              >
-                ×
-              </button>
             </div>
             
-            {/* Chat Messages */}
-            <div className="p-4 flex-1 flex flex-col justify-end">
-              <div className="mb-4">
-                <div 
-                  className="inline-block p-3 rounded-lg text-sm"
-                  style={{ 
-                    backgroundColor: widgetSettings.primaryColor,
-                    color: '#ffffff'
-                  }}
-                >
-                  {widgetSettings.greeting}
-                </div>
-              </div>
+            {/* Messages Area */}
+            <div className="flex-1 p-4 overflow-y-auto max-h-80"
+                 style={{ 
+                   backgroundColor: widgetSettings.currentTheme === 'dark' ? widgetSettings.backgroundColor : '#FAFAFA'
+                 }}>
               
-              {/* Input Area */}
-              <div className="border-t pt-3">
+              {/* Initial Greeting */}
+              {chatMessages.length === 0 && (
+                <div className="mb-4">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center mt-1"
+                         style={{ backgroundColor: widgetSettings.primaryColor }}>
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-xs"
+                           style={{ 
+                             color: widgetSettings.textColor,
+                             backgroundColor: widgetSettings.currentTheme === 'dark' ? '#374151' : '#FFFFFF'
+                           }}>
+                        <p className="text-sm">{widgetSettings.greeting}</p>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1 ml-2">Just now</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Chat Messages */}
+              {chatMessages.map((message) => (
+                <div key={message.id} className={`mb-4 ${message.isUser ? 'text-right' : ''}`}>
+                  <div className={`flex items-start space-x-2 ${message.isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    {!message.isUser && (
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center mt-1"
+                           style={{ backgroundColor: widgetSettings.primaryColor }}>
+                        <Bot className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <div className={`rounded-2xl p-3 shadow-sm border max-w-xs ${
+                        message.isUser 
+                          ? 'rounded-tr-sm ml-auto' 
+                          : 'rounded-tl-sm'
+                      }`}
+                           style={{
+                             backgroundColor: message.isUser 
+                               ? widgetSettings.primaryColor 
+                               : (widgetSettings.currentTheme === 'dark' ? '#374151' : '#FFFFFF'),
+                             color: message.isUser 
+                               ? '#FFFFFF' 
+                               : widgetSettings.textColor,
+                             borderColor: widgetSettings.currentTheme === 'dark' ? '#4B5563' : '#E5E7EB'
+                           }}>
+                        <p className="text-sm">{message.text}</p>
+                      </div>
+                      <div className={`text-xs text-gray-500 mt-1 ${message.isUser ? 'mr-2' : 'ml-2'}`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Typing Indicator */}
+              {isTyping && (
+                <div className="flex items-start space-x-2 mb-4">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                       style={{ backgroundColor: widgetSettings.primaryColor }}>
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100"
+                       style={{ 
+                         backgroundColor: widgetSettings.currentTheme === 'dark' ? '#374151' : '#FFFFFF',
+                         borderColor: widgetSettings.currentTheme === 'dark' ? '#4B5563' : '#E5E7EB'
+                       }}>
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+            
+            {/* Input Area */}
+            <div className="p-4 border-t border-gray-100"
+                 style={{ 
+                   backgroundColor: widgetSettings.currentTheme === 'dark' ? widgetSettings.backgroundColor : '#FFFFFF',
+                   borderColor: widgetSettings.currentTheme === 'dark' ? '#4B5563' : '#E5E7EB'
+                 }}>
+              <div className="flex space-x-2">
                 <input
                   type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   placeholder={widgetSettings.placeholder}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                  className="flex-1 px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all text-sm"
                   style={{ 
-                    borderColor: widgetSettings.primaryColor,
-                    color: widgetSettings.textColor
+                    borderColor: widgetSettings.currentTheme === 'dark' ? '#4B5563' : '#E5E7EB',
+                    backgroundColor: widgetSettings.currentTheme === 'dark' ? '#374151' : '#F9FAFB',
+                    color: widgetSettings.textColor,
+                    focusRingColor: widgetSettings.primaryColor
                   }}
                 />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputMessage.trim()}
+                  className="px-4 py-3 rounded-xl text-white font-medium transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: widgetSettings.primaryColor }}
+                >
+                  <Send className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
         )}
         
-        {/* Widget Button */}
+        {/* Modern Widget Button */}
         <button
           onClick={() => setShowPreview(!showPreview)}
-          className={`shadow-lg hover:scale-110 transition-all flex items-center justify-center font-medium text-white ${
-            isCircle ? 'w-14 h-14 rounded-full' : 
-            isPill ? 'px-4 py-3 rounded-full' : 
-            'px-4 py-3 rounded-lg'
+          className={`shadow-2xl hover:scale-110 transition-all flex items-center justify-center font-medium text-white backdrop-blur-sm ${
+            isCircle ? 'w-16 h-16 rounded-full' : 
+            isPill ? 'px-6 py-4 rounded-full' : 
+            'px-6 py-4 rounded-xl'
           }`}
-          style={{ backgroundColor: widgetSettings.primaryColor }}
+          style={{ 
+            background: `linear-gradient(135deg, ${widgetSettings.primaryColor}, ${widgetSettings.primaryColor}dd)`,
+            boxShadow: `0 10px 25px ${widgetSettings.primaryColor}40`
+          }}
           title="Preview Widget"
         >
-          {buttonStyle?.icon && <span className="mr-2">{buttonStyle.icon}</span>}
-          {!isCircle && buttonStyle?.name}
+          <span className="text-lg">{buttonStyle?.icon}</span>
+          {!isCircle && <span className="ml-2 text-sm font-semibold">{buttonStyle?.name}</span>}
         </button>
       </div>
     );
@@ -588,6 +756,23 @@ function App(): JSX.Element {
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400 h-24 resize-none"
                     placeholder="Hi! How can I help you today?"
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 text-sm mb-2">
+                    API Key (Optional)
+                    <span className="text-gray-500 ml-2">• For real N2P AI responses</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    placeholder="Enter your Net2Phone AI API key..."
+                  />
+                  <p className="text-gray-500 text-xs mt-1">
+                    Leave empty to use simulated responses for preview
+                  </p>
                 </div>
               </div>
             </div>
