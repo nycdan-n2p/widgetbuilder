@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProductFlow Widget Integration Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .nav-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-left {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-item {
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .notification-bell {
+            position: relative;
+            background: none;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: #64748b;
+        }
+
+        .notification-bell:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .notification-bell svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            color: #1e293b;
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.new {
+            background: #ef4444;
+        }
+
+        .notification-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .notification-content p {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .integration-guide {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        .code-comment {
+            color: #94a3b8;
+        }
+
+        .code-string {
+            color: #34d399;
+        }
+
+        .code-keyword {
+            color: #60a5fa;
+        }
+
+        .step {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .step:last-child {
+            border-bottom: none;
+        }
+
+        .step h4 {
+            color: #1e293b;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-right: 12px;
+            margin-bottom: 8px;
+        }
+
+        .test-button:hover {
+            background: #2563eb;
+        }
+
+        .test-button.secondary {
+            background: #64748b;
+        }
+
+        .test-button.secondary:hover {
+            background: #475569;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .status-indicator.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-indicator.error {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .status-indicator.warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-bar {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .nav-left {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>ProductFlow Widget Integration Example</h1>
+            <p>A complete example showing how to integrate ProductFlow changelog and notification widgets</p>
+        </div>
+
+        <!-- Navigation Bar with Notification Bell -->
+        <div class="nav-bar">
+            <div class="nav-left">
+                <a href="#" class="nav-item active">Dashboard</a>
+                <a href="#" class="nav-item">Products</a>
+                <a href="#" class="nav-item">Analytics</a>
+                <a href="#" class="nav-item">Settings</a>
+            </div>
+            <div class="nav-right">
+                <!-- This is the notification bell that will have the badge -->
+                <button id="notification-bell-icon" class="notification-bell">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                </button>
+                <div class="user-avatar">JD</div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Sample Notifications -->
+            <div class="card">
+                <h3>Recent Notifications</h3>
+                <div class="notification-item">
+                    <div class="notification-icon new"></div>
+                    <div class="notification-content">
+                        <h4>New Feature: Dark Mode</h4>
+                        <p>We've added a new dark mode theme to improve your experience during late-night sessions.</p>
+                        <div class="notification-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon new"></div>
+                    <div class="notification-content">
+                        <h4>Performance Improvements</h4>
+                        <p>Dashboard loading times have been reduced by 40% with our latest optimizations.</p>
+                        <div class="notification-time">1 day ago</div>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon"></div>
+                    <div class="notification-content">
+                        <h4>Bug Fix: Export Feature</h4>
+                        <p>Fixed an issue where CSV exports would fail for large datasets.</p>
+                        <div class="notification-time">3 days ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget Status -->
+            <div class="card">
+                <h3>Widget Status</h3>
+                <div style="margin-bottom: 16px;">
+                    <strong>Main Widget:</strong>
+                    <div class="status-indicator" id="main-widget-status">
+                        <span>●</span> Checking...
+                    </div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <strong>Notification Badge:</strong>
+                    <div class="status-indicator" id="notification-status">
+                        <span>●</span> Checking...
+                    </div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <strong>API Connection:</strong>
+                    <div class="status-indicator" id="api-status">
+                        <span>●</span> Checking...
+                    </div>
+                </div>
+                <button class="test-button" onclick="testWidgetOpen()">Test Widget Open</button>
+                <button class="test-button secondary" onclick="refreshStatus()">Refresh Status</button>
+            </div>
+        </div>
+
+        <!-- Integration Guide -->
+        <div class="integration-guide">
+            <h3>Integration Guide</h3>
+            
+            <div class="step">
+                <h4><span class="step-number">1</span>Configure the Widget</h4>
+                <p>Add the configuration script to your HTML head or before the closing body tag:</p>
+                <div class="code-block">
+<span class="code-comment">// Main widget configuration</span>
+<span class="code-keyword">var</span> productflow_config = {
+  <span class="code-string">product_id</span>: <span class="code-string">'your-product-id'</span>,
+  <span class="code-string">position</span>: <span class="code-string">'bottom-right'</span>,
+  <span class="code-string">buttonText</span>: <span class="code-string">"What's New"</span>,
+  <span class="code-string">widgetTitle</span>: <span class="code-string">'Product Updates'</span>,
+  <span class="code-string">primaryColor</span>: <span class="code-string">'#3b82f6'</span>,
+  <span class="code-string">darkMode</span>: <span class="code-keyword">false</span>,
+  <span class="code-string">showButton</span>: <span class="code-keyword">false</span>, <span class="code-comment">// Hide default button</span>
+  <span class="code-string">apiUrl</span>: <span class="code-string">'https://your-api-endpoint.com'</span>
+};
+
+<span class="code-comment">// Notification badge configuration</span>
+<span class="code-keyword">var</span> productflow_notification_config = {
+  <span class="code-string">product_id</span>: <span class="code-string">'your-product-id'</span>,
+  <span class="code-string">targetSelector</span>: <span class="code-string">'#notification-bell-icon'</span>,
+  <span class="code-string">badgePosition</span>: <span class="code-string">'top-right'</span>,
+  <span class="code-string">badgeColor</span>: <span class="code-string">'#ef4444'</span>,
+  <span class="code-string">textColor</span>: <span class="code-string">'#ffffff'</span>,
+  <span class="code-string">checkInterval</span>: <span class="code-keyword">30000</span>, <span class="code-comment">// 30 seconds</span>
+  <span class="code-string">apiUrl</span>: <span class="code-string">'https://your-api-endpoint.com'</span>,
+  <span class="code-string">onClick</span>: <span class="code-keyword">function</span>(count) {
+    <span class="code-comment">// Open the main widget when badge is clicked</span>
+    <span class="code-keyword">if</span> (<span class="code-keyword">window</span>.productflow_openWidget) {
+      <span class="code-keyword">window</span>.productflow_openWidget();
+    }
+  }
+};
+                </div>
+            </div>
+
+            <div class="step">
+                <h4><span class="step-number">2</span>Load the Widget Scripts</h4>
+                <p>Include the ProductFlow widget scripts:</p>
+                <div class="code-block">
+<span class="code-comment">&lt;!-- Main widget script --&gt;</span>
+&lt;<span class="code-keyword">script</span> <span class="code-string">src</span>=<span class="code-string">"https://your-api-endpoint.com/widget.js"</span> <span class="code-string">defer</span>&gt;&lt;/<span class="code-keyword">script</span>&gt;
+
+<span class="code-comment">&lt;!-- Notification badge script --&gt;</span>
+&lt;<span class="code-keyword">script</span> <span class="code-string">src</span>=<span class="code-string">"https://your-api-endpoint.com/notification-widget.js"</span> <span class="code-string">defer</span>&gt;&lt;/<span class="code-keyword">script</span>&gt;
+                </div>
+            </div>
+
+            <div class="step">
+                <h4><span class="step-number">3</span>Create the Notification Bell</h4>
+                <p>Add a notification bell element with the correct ID:</p>
+                <div class="code-block">
+&lt;<span class="code-keyword">button</span> <span class="code-string">id</span>=<span class="code-string">"notification-bell-icon"</span> <span class="code-string">class</span>=<span class="code-string">"notification-bell"</span>&gt;
+  <span class="code-comment">&lt;!-- Bell icon SVG or icon font --&gt;</span>
+  &lt;<span class="code-keyword">svg</span> <span class="code-string">viewBox</span>=<span class="code-string">"0 0 24 24"</span> <span class="code-string">fill</span>=<span class="code-string">"none"</span> <span class="code-string">stroke</span>=<span class="code-string">"currentColor"</span>&gt;
+    &lt;<span class="code-keyword">path</span> <span class="code-string">d</span>=<span class="code-string">"M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"</span>&gt;&lt;/<span class="code-keyword">path</span>&gt;
+    &lt;<span class="code-keyword">path</span> <span class="code-string">d</span>=<span class="code-string">"M13.73 21a2 2 0 0 1-3.46 0"</span>&gt;&lt;/<span class="code-keyword">path</span>&gt;
+  &lt;/<span class="code-keyword">svg</span>&gt;
+&lt;/<span class="code-keyword">button</span>&gt;
+                </div>
+            </div>
+
+            <div class="step">
+                <h4><span class="step-number">4</span>Handle Click Events</h4>
+                <p>The notification badge will automatically handle clicks, but you can also manually trigger the widget:</p>
+                <div class="code-block">
+<span class="code-comment">// Method 1: Use the direct function (recommended)</span>
+<span class="code-keyword">if</span> (<span class="code-keyword">typeof</span> <span class="code-keyword">window</span>.productflow_openWidget === <span class="code-string">'function'</span>) {
+  <span class="code-keyword">window</span>.productflow_openWidget();
+}
+
+<span class="code-comment">// Method 2: Use the ProductFlow object</span>
+<span class="code-keyword">if</span> (<span class="code-keyword">window</span>.ProductFlow && <span class="code-keyword">window</span>.ProductFlow.openWidget) {
+  <span class="code-keyword">window</span>.ProductFlow.openWidget();
+}
+
+<span class="code-comment">// Method 3: Find and click the widget button</span>
+<span class="code-keyword">const</span> widgetButton = document.querySelector(<span class="code-string">'.productflow-widget-button'</span>);
+<span class="code-keyword">if</span> (widgetButton) {
+  widgetButton.click();
+}
+                </div>
+            </div>
+
+            <div class="step">
+                <h4><span class="step-number">5</span>Styling the Badge</h4>
+                <p>The notification badge is automatically positioned, but you can customize its appearance:</p>
+                <div class="code-block">
+<span class="code-comment">/* Custom badge styling */</span>
+.productflow-notification-badge {
+  <span class="code-string">background-color</span>: <span class="code-string">#ef4444</span> !important;
+  <span class="code-string">color</span>: <span class="code-string">#ffffff</span> !important;
+  <span class="code-string">font-size</span>: <span class="code-string">11px</span> !important;
+  <span class="code-string">font-weight</span>: <span class="code-string">bold</span> !important;
+  <span class="code-string">border-radius</span>: <span class="code-string">50%</span> !important;
+  <span class="code-string">min-width</span>: <span class="code-string">18px</span> !important;
+  <span class="code-string">height</span>: <span class="code-string">18px</span> !important;
+}
+
+<span class="code-comment">/* Ensure the parent element has relative positioning */</span>
+<span class="code-string">#notification-bell-icon</span> {
+  <span class="code-string">position</span>: <span class="code-string">relative</span>;
+}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ProductFlow Widget Configuration -->
+    <script>
+        var productflow_config = {
+            product_id: 'net2phone-unite',
+            position: 'bottom-right',
+            buttonText: "What's New",
+            widgetTitle: 'Product Updates',
+            primaryColor: '#3b82f6',
+            darkMode: false,
+            showButton: false, // Hide the default button since we're using custom trigger
+            apiUrl: 'https://gregarious-kheer-9b9340.netlify.app'
+        };
+
+        var productflow_notification_config = {
+            product_id: 'net2phone-unite',
+            targetSelector: '#notification-bell-icon',
+            badgePosition: 'top-right',
+            badgeColor: '#ef4444',
+            textColor: '#ffffff',
+            checkInterval: 10000, // Check every 10 seconds for demo
+            showZero: false,
+            maxCount: 99,
+            apiUrl: 'https://gregarious-kheer-9b9340.netlify.app',
+            onClick: function(count) {
+                console.log('Badge clicked with count:', count);
+                if (typeof window.productflow_openWidget === 'function') {
+                    window.productflow_openWidget();
+                } else if (window.ProductFlow && window.ProductFlow.openWidget) {
+                    window.ProductFlow.openWidget();
+                }
+            }
+        };
+
+        // Status checking functions
+        function checkWidgetStatus() {
+            const mainStatus = document.getElementById('main-widget-status');
+            const notificationStatus = document.getElementById('notification-status');
+            const apiStatus = document.getElementById('api-status');
+
+            // Check main widget
+            if (typeof window.productflow_openWidget === 'function' || (window.ProductFlow && window.ProductFlow.openWidget)) {
+                mainStatus.className = 'status-indicator success';
+                mainStatus.innerHTML = '<span>●</span> Ready';
+            } else {
+                mainStatus.className = 'status-indicator error';
+                mainStatus.innerHTML = '<span>●</span> Not Loaded';
+            }
+
+            // Check notification widget
+            if (window.productflow_notification && typeof window.productflow_notification.init === 'function') {
+                notificationStatus.className = 'status-indicator success';
+                notificationStatus.innerHTML = '<span>●</span> Active';
+            } else {
+                notificationStatus.className = 'status-indicator warning';
+                notificationStatus.innerHTML = '<span>●</span> Loading...';
+            }
+
+            // Check API
+            fetch(productflow_notification_config.apiUrl + '/api/notifications/' + productflow_notification_config.product_id + '?domain=' + window.location.hostname)
+                .then(response => {
+                    if (response.ok) {
+                        apiStatus.className = 'status-indicator success';
+                        apiStatus.innerHTML = '<span>●</span> Connected';
+                    } else {
+                        apiStatus.className = 'status-indicator error';
+                        apiStatus.innerHTML = '<span>●</span> Error ' + response.status;
+                    }
+                })
+                .catch(error => {
+                    apiStatus.className = 'status-indicator error';
+                    apiStatus.innerHTML = '<span>●</span> Connection Failed';
+                });
+        }
+
+        function testWidgetOpen() {
+            console.log('Testing widget open...');
+            
+            if (typeof window.productflow_openWidget === 'function') {
+                console.log('✅ Using window.productflow_openWidget()');
+                window.productflow_openWidget();
+            } else if (window.ProductFlow && typeof window.ProductFlow.openWidget === 'function') {
+                console.log('✅ Using window.ProductFlow.openWidget()');
+                window.ProductFlow.openWidget();
+            } else {
+                console.log('❌ No widget opening method available');
+                alert('Widget not loaded yet. Please wait a moment and try again.');
+            }
+        }
+
+        function refreshStatus() {
+            checkWidgetStatus();
+        }
+
+        // Initialize status checking
+        window.addEventListener('load', function() {
+            setTimeout(checkWidgetStatus, 1000);
+            setInterval(checkWidgetStatus, 5000); // Check every 5 seconds
+        });
+
+        // Add click handler to notification bell
+        document.addEventListener('DOMContentLoaded', function() {
+            const bell = document.getElementById('notification-bell-icon');
+            if (bell) {
+                bell.addEventListener('click', function() {
+                    console.log('🔔 Bell clicked!');
+                    testWidgetOpen();
+                });
+            }
+        });
+    </script>
+
+    <!-- ProductFlow Widget Scripts -->
+    <script type="text/javascript" src="https://gregarious-kheer-9b9340.netlify.app/widget.js" defer></script>
+    <script type="text/javascript" src="https://gregarious-kheer-9b9340.netlify.app/notification-widget.js" defer></script>
+</body>
+</html>

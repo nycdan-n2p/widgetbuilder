@@ -1,0 +1,94 @@
+<!-- ProductFlow Changelog Widget -->
+<script>
+(function() {
+  // Scoped guard so multiple GTM tags don't double-load
+  window.__productflow_registry = window.__productflow_registry || new Set();
+  const PRODUCT_ID = 'net2phone-unite'; // Define product ID once
+  const API_URL = 'https://gregarious-kheer-9b9340.netlify.app';
+
+  if (window.__productflow_registry.has(PRODUCT_ID)) return;
+  window.__productflow_registry.add(PRODUCT_ID);
+
+  // Widget Configuration
+  window.productflow_config = {
+    product_id: PRODUCT_ID,
+    position: 'bottom-right',
+    buttonText: "What's New",
+    widgetTitle: 'Product Updates',
+    primaryColor: '#434956',
+    darkMode: true,
+    showButton: false,
+    apiUrl: API_URL,
+    aiAgent: {
+      enabled: true,
+      apiUrl: 'https://aiagent.net2phone.com',
+      apiToken: 'YJJzyob1Q9vAeb2tBGCohdjWXDWrEoTn_tpVpK0SXhEvi6-rCBzENC-pbQPJW9t5',
+      trackingUrl: API_URL
+    }
+  };
+
+  // Notification Badge Configuration
+  window.productflow_notification_config = {
+    product_id: PRODUCT_ID,
+    targetSelector: '#my-notification-icon',
+    badgePosition: 'top-right',
+    badgeColor: '#ef4444',
+    textColor: '#ffffff',
+    checkInterval: 30000,
+    showZero: false,
+    maxCount: 99,
+    apiUrl: API_URL,
+    onClick: function(count) {
+      // Open the ProductFlow widget when notification badge is clicked
+      if (typeof window.productflow_openWidget === 'function') {
+        window.productflow_openWidget();
+      } else if (window.ProductFlow && window.ProductFlow.openWidget) {
+        window.ProductFlow.openWidget();
+      }
+    }
+  };
+
+  // Script loader with CSP and error handling
+  function loadScript(src) {
+    var script = document.createElement('script');
+    script.src = src.trim();
+    script.defer = true;
+
+    // Copy GTM's nonce (if available) so CSP doesn't block it
+    var gtmNonce = document.currentScript && document.currentScript.nonce;
+    if (gtmNonce) script.nonce = gtmNonce;
+
+    script.onerror = function() {
+      console.warn('ProductFlow script failed to load:', src);
+    };
+
+    document.head.appendChild(script);
+  }
+
+  // Load the widget scripts
+  loadScript(API_URL + '/widget.js');
+  loadScript(API_URL + '/notification-widget.js');
+
+  // Debug function to check widget loading (optional - can be removed in production)
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      console.log('=== ProductFlow GTM Debug Info ===');
+      console.log('ProductFlow widget loaded:', typeof window.ProductFlow !== 'undefined');
+      console.log('Notification widget loaded:', typeof window.productflow_notification !== 'undefined');
+      console.log('Notification config:', window.productflow_notification_config);
+      console.log('Main config:', window.productflow_config);
+      
+      // Check if notification target exists
+      const target = document.querySelector('#my-notification-icon');
+      console.log('Notification target found:', !!target);
+      if (target) {
+        console.log('Target element:', target);
+        
+        // Check for existing badge
+        const existingBadge = target.querySelector('.productflow-notification-badge');
+        console.log('Existing badge found:', !!existingBadge);
+      }
+    }, 2000);
+  });
+})();
+</script>

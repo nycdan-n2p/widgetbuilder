@@ -1,0 +1,359 @@
+import React, { useState } from 'react';
+import { 
+  ArrowLeft, 
+  Check,
+  Copy,
+  Trash2,
+  MessageSquare,
+  Palette,
+  SquareActivity
+} from 'lucide-react';
+
+function App() {
+  const [currentView, setCurrentView] = useState('styling'); // 'styling' or 'builder'
+  const [selectedTheme, setSelectedTheme] = useState('light');
+  const [selectedColor, setSelectedColor] = useState('#2372E8');
+  const [iconColor, setIconColor] = useState('#FFFFFF');
+  const [selectedButtonStyle, setSelectedButtonStyle] = useState('message');
+  const [widgetName, setWidgetName] = useState('');
+  const [widgetTitle, setWidgetTitle] = useState('');
+  const [placeholderText, setPlaceholderText] = useState('');
+  const [greetingMessage, setGreetingMessage] = useState('');
+  const [selectedHosting, setSelectedHosting] = useState('net2phone');
+  const [generatedCode, setGeneratedCode] = useState('uhciuashcuiashviuashviuahviuashyjiabsjvhjkabshjvbashkxhasbvkjhasbvkjhsbznvcyjbsvjkbnz...');
+
+  const colors = [
+    '#000000', '#6366F1', '#2372E8', '#06B6D4', '#10B981', 
+    '#F59E0B', '#F97316', '#EF4444', '#EC4899', '#8B5CF6'
+  ];
+
+  const renderThemeSection = () => (
+    <div className="mb-8">
+      <h3 className="text-white text-lg font-medium mb-4">Theme</h3>
+      <div className="grid grid-cols-2 gap-4">
+        <div 
+          onClick={() => setSelectedTheme('light')}
+          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${selectedTheme === 'light' ? 'border-blue-400' : 'border-transparent'}`}
+        >
+          {selectedTheme === 'light' && (
+            <div className="absolute top-2 right-2 w-5 h-5 bg-blue-400 rounded-full flex items-center justify-center">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+          )}
+          <div className="bg-gray-200 rounded-lg p-3 mb-2">
+            <div className="bg-black text-white text-xs px-2 py-1 rounded-full inline-flex items-center space-x-1">
+              <span>👋</span>
+              <span>Hey 👋 May I help you?</span>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm">Light Theme</p>
+        </div>
+        
+        <div 
+          onClick={() => setSelectedTheme('dark')}
+          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${selectedTheme === 'dark' ? 'border-blue-400' : 'border-transparent'}`}
+        >
+          {selectedTheme === 'dark' && (
+            <div className="absolute top-2 right-2 w-5 h-5 bg-blue-400 rounded-full flex items-center justify-center">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+          )}
+          <div className="bg-gray-500 rounded-lg p-3 mb-2">
+            <div className="bg-white text-black text-xs px-2 py-1 rounded-full inline-flex items-center space-x-1">
+              <span>👋</span>
+              <span>Hey 👋 May I help you?</span>
+            </div>
+          </div>
+          <p className="text-gray-300 text-sm">Dark Theme</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMainColors = () => (
+    <div className="mb-8">
+      <h3 className="text-white text-lg font-medium mb-4">Main Colors</h3>
+      <div className="flex space-x-2 mb-4">
+        {colors.map((color) => (
+          <button
+            key={color}
+            onClick={() => setSelectedColor(color)}
+            className={`w-10 h-10 rounded-full border-2 ${selectedColor === color ? 'border-blue-400' : 'border-gray-600'} relative`}
+            style={{ backgroundColor: color }}
+          >
+            {selectedColor === color && (
+              <Check className="w-4 h-4 text-white absolute inset-0 m-auto" />
+            )}
+          </button>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-gray-300 text-sm mb-2">Bubble color</p>
+          <div className="flex items-center space-x-2">
+            <div 
+              className="w-8 h-8 rounded" 
+              style={{ backgroundColor: selectedColor }}
+            ></div>
+            <span className="text-white text-sm font-mono">{selectedColor}</span>
+          </div>
+        </div>
+        
+        <div>
+          <p className="text-gray-300 text-sm mb-2">Icon color</p>
+          <div className="flex items-center space-x-2">
+            <div 
+              className="w-8 h-8 rounded bg-white"
+            ></div>
+            <span className="text-white text-sm font-mono">{iconColor}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderButtonStyle = () => (
+    <div className="mb-8">
+      <h3 className="text-white text-lg font-medium mb-4">Button Style</h3>
+      <div className="grid grid-cols-4 gap-3">
+        <button
+          onClick={() => setSelectedButtonStyle('help')}
+          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'help' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1`}
+        >
+          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-lg">?</span>
+          </div>
+          {selectedButtonStyle === 'help' && (
+            <Check className="w-3 h-3 text-blue-400" />
+          )}
+        </button>
+        
+        <button
+          onClick={() => setSelectedButtonStyle('message')}
+          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'message' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1 relative`}
+        >
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: selectedColor }}>
+            <MessageSquare className="w-4 h-4 text-white" />
+          </div>
+          {selectedButtonStyle === 'message' && (
+            <div className="absolute top-1 right-1 w-4 h-4 bg-blue-400 rounded-full flex items-center justify-center">
+              <Check className="w-2 h-2 text-white" />
+            </div>
+          )}
+        </button>
+        
+        <button
+          onClick={() => setSelectedButtonStyle('help2')}
+          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'help2' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1`}
+        >
+          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-lg">?</span>
+          </div>
+          {selectedButtonStyle === 'help2' && (
+            <Check className="w-3 h-3 text-blue-400" />
+          )}
+        </button>
+        
+        <button
+          onClick={() => setSelectedButtonStyle('message2')}
+          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'message2' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1`}
+        >
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: selectedColor }}>
+            <MessageSquare className="w-4 h-4 text-white" />
+          </div>
+          {selectedButtonStyle === 'message2' && (
+            <Check className="w-3 h-3 text-blue-400" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderGenerateCode = () => (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-white text-lg font-medium">Generate a Code</h3>
+        <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">
+          Generate
+        </button>
+      </div>
+      <div className="bg-gray-800 rounded-lg p-4 relative">
+        <p className="text-gray-300 text-sm font-mono break-all">{generatedCode}</p>
+        <button className="absolute top-2 right-2 text-gray-400 hover:text-white">
+          <span className="text-sm">show more</span>
+        </button>
+        <button className="absolute bottom-2 right-2 p-2 text-gray-400 hover:text-white">
+          <Copy className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderDeleteWidget = () => (
+    <div>
+      <h3 className="text-white text-lg font-medium mb-4">Delete Widget</h3>
+      <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+        Delete
+      </button>
+    </div>
+  );
+
+  const renderWidgetBuilder = () => (
+    <div className="min-h-screen bg-gray-900">
+      <div className="bg-blue-800 px-6 py-3 text-center">
+        <div className="flex items-center justify-center space-x-2 text-white">
+          <SquareActivity className="w-5 h-5" />
+          <span className="font-medium">Widget Builder</span>
+        </div>
+        <p className="text-blue-200 text-sm">The widget functions as a preview in edit mode.</p>
+      </div>
+      
+      <div className="p-6">
+        <div className="flex items-center space-x-4 mb-8">
+          <button 
+            onClick={() => setCurrentView('styling')}
+            className="text-gray-400 hover:text-white flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
+          </button>
+          <h1 className="text-white text-xl font-medium">Create new Widget</h1>
+          <button className="ml-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500">
+            Edit
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-gray-300 text-sm mb-2">Name</label>
+          <input
+            type="text"
+            value={widgetName}
+            onChange={(e) => setWidgetName(e.target.value)}
+            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 mb-8">
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-medium">Virtual Agent</h3>
+              <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
+            </div>
+            <p className="text-gray-400 text-sm">There is no Virtual Agent assigned to this widget.</p>
+          </div>
+          
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-medium">Domain</h3>
+              <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
+            </div>
+            <p className="text-gray-400 text-sm">There is no authorized domain assigned to this widget.</p>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white text-lg font-medium">Widget Configurations</h2>
+            <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500">Edit</button>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-300 text-sm mb-2">Widget Title</label>
+              <input
+                type="text"
+                value={widgetTitle}
+                onChange={(e) => setWidgetTitle(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-300 text-sm mb-2">Placeholder Text</label>
+              <input
+                type="text"
+                value={placeholderText}
+                onChange={(e) => setPlaceholderText(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-300 text-sm mb-2">Greeting message</label>
+              <input
+                type="text"
+                value={greetingMessage}
+                onChange={(e) => setGreetingMessage(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-white text-lg font-medium mb-4">Hosting Options</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div 
+              onClick={() => setSelectedHosting('net2phone')}
+              className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'net2phone' ? 'border-blue-400 bg-blue-900 bg-opacity-30' : 'border-gray-600 bg-gray-800'}`}
+            >
+              <h3 className="text-white font-medium mb-2">net2phone Hosted</h3>
+              <p className="text-gray-300 text-sm mb-4">
+                Widget loads from our servers. Automatic updates, fast maintenance, and better performance.
+              </p>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="px-2 py-1 bg-green-600 text-white rounded">Auto-updates</span>
+                <span className="px-2 py-1 bg-blue-600 text-white rounded">CDN delivery</span>
+                <span className="px-2 py-1 bg-purple-600 text-white rounded">Zero maintenance</span>
+              </div>
+            </div>
+            
+            <div 
+              onClick={() => setSelectedHosting('self')}
+              className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'self' ? 'border-blue-400 bg-gray-800' : 'border-gray-600 bg-gray-800'}`}
+            >
+              <h3 className="text-white font-medium mb-2">Self-Hosted</h3>
+              <p className="text-gray-300 text-sm mb-4">
+                Download widget.js and host it on your own servers. Full control but requires manual updates.
+              </p>
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="px-2 py-1 bg-yellow-600 text-white rounded">Manual updates</span>
+                <span className="px-2 py-1 bg-gray-600 text-white rounded">Custom hosting</span>
+                <span className="px-2 py-1 bg-blue-600 text-white rounded">Full control</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (currentView === 'builder') {
+    return renderWidgetBuilder();
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-white text-2xl font-semibold">Theme and Styling</h1>
+          <button 
+            onClick={() => setCurrentView('builder')}
+            className="text-blue-400 hover:text-blue-300 underline"
+          >
+            Go to Widget Builder
+          </button>
+        </div>
+        
+        {renderThemeSection()}
+        {renderMainColors()}
+        {renderButtonStyle()}
+        {renderGenerateCode()}
+        {renderDeleteWidget()}
+      </div>
+    </div>
+  );
+}
+
+export default App;

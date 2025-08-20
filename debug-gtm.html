@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTM ProductFlow Debug</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .debug-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: inline-block;
+            margin: 4px 0;
+        }
+        .status.success { background: #dcfce7; color: #166534; }
+        .status.error { background: #fef2f2; color: #dc2626; }
+        .status.warning { background: #fef3c7; color: #d97706; }
+        .notification-bell {
+            position: relative;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 4px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>GTM ProductFlow Debug Tool</h1>
+    
+    <div class="debug-section">
+        <h2>1. GTM Status Check</h2>
+        <div id="gtm-status">Checking...</div>
+        <button onclick="checkGTM()">Refresh GTM Status</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>2. ProductFlow Configuration</h2>
+        <div id="config-status">Checking...</div>
+        <button onclick="checkConfig()">Check Config</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>3. Script Loading Status</h2>
+        <div id="script-status">Checking...</div>
+        <button onclick="checkScripts()">Check Scripts</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>4. Test Notification Bell</h2>
+        <button id="my-notification-icon" class="notification-bell">🔔 Click Me (Notification Bell)</button>
+        <div id="bell-status" style="margin-top: 10px;">Click the bell to test</div>
+    </div>
+
+    <div class="debug-section">
+        <h2>5. Manual Widget Test</h2>
+        <button onclick="testWidget()">Test Open Widget</button>
+        <div id="widget-status" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>6. Network Requests</h2>
+        <button onclick="testAPI()">Test API Connection</button>
+        <div id="api-status" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>7. Console Output</h2>
+        <div id="console-output">
+            <p>Open browser console (F12) for detailed logs</p>
+        </div>
+    </div>
+
+    <!-- GTM Container (Replace GTM-XXXXXXX with your actual GTM ID) -->
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WG46Q862');</script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WG46Q862"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <script>
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function checkGTM() {
+            console.log('=== GTM Status Check ===');
+            
+            const gtmLoaded = typeof window.google_tag_manager !== 'undefined';
+            const dataLayerExists = typeof window.dataLayer !== 'undefined';
+            
+            console.log('GTM loaded:', gtmLoaded);
+            console.log('dataLayer exists:', dataLayerExists);
+            console.log('dataLayer contents:', window.dataLayer);
+            
+            if (gtmLoaded && dataLayerExists) {
+                updateStatus('gtm-status', '✅ GTM is loaded and working', 'success');
+            } else {
+                updateStatus('gtm-status', '❌ GTM not detected', 'error');
+            }
+        }
+
+        function checkConfig() {
+            console.log('=== ProductFlow Config Check ===');
+            
+            const mainConfig = window.productflow_config;
+            const notificationConfig = window.productflow_notification_config;
+            const registry = window.__productflow_registry;
+            
+            console.log('Main config:', mainConfig);
+            console.log('Notification config:', notificationConfig);
+            console.log('Registry:', registry);
+            
+            let status = '';
+            if (mainConfig && notificationConfig) {
+                status = '✅ Both configs loaded';
+                updateStatus('config-status', status, 'success');
+            } else if (mainConfig || notificationConfig) {
+                status = '⚠️ Partial config loaded';
+                updateStatus('config-status', status, 'warning');
+            } else {
+                status = '❌ No config found';
+                updateStatus('config-status', status, 'error');
+            }
+        }
+
+        function checkScripts() {
+            console.log('=== Script Loading Check ===');
+            
+            const widgetFunction = typeof window.productflow_openWidget;
+            const productFlowObject = typeof window.ProductFlow;
+            const notificationWidget = typeof window.productflow_notification;
+            
+            console.log('productflow_openWidget:', widgetFunction);
+            console.log('ProductFlow object:', productFlowObject);
+            console.log('productflow_notification:', notificationWidget);
+            
+            let status = '';
+            if (widgetFunction === 'function' || (window.ProductFlow && window.ProductFlow.openWidget)) {
+                status = '✅ Main widget script loaded';
+                updateStatus('script-status', status, 'success');
+            } else {
+                status = '❌ Main widget script not loaded';
+                updateStatus('script-status', status, 'error');
+            }
+        }
+
+        function testWidget() {
+            console.log('=== Manual Widget Test ===');
+            
+            if (typeof window.productflow_openWidget === 'function') {
+                console.log('✅ Using window.productflow_openWidget()');
+                window.productflow_openWidget();
+                updateStatus('widget-status', '✅ Widget opened via productflow_openWidget', 'success');
+            } else if (window.ProductFlow && window.ProductFlow.openWidget) {
+                console.log('✅ Using window.ProductFlow.openWidget()');
+                window.ProductFlow.openWidget();
+                updateStatus('widget-status', '✅ Widget opened via ProductFlow.openWidget', 'success');
+            } else {
+                console.log('❌ No widget opening method available');
+                updateStatus('widget-status', '❌ No widget opening method found', 'error');
+            }
+        }
+
+        function testAPI() {
+            console.log('=== API Connection Test ===');
+            
+            const apiUrl = 'https://gregarious-kheer-9b9340.netlify.app';
+            const productId = 'net2phone-unite';
+            const testUrl = `${apiUrl}/api/notifications/${productId}?domain=${window.location.hostname}`;
+            
+            console.log('Testing API URL:', testUrl);
+            
+            fetch(testUrl)
+                .then(response => {
+                    console.log('API Response:', response);
+                    if (response.ok) {
+                        updateStatus('api-status', `✅ API connected (${response.status})`, 'success');
+                        return response.json();
+                    } else {
+                        updateStatus('api-status', `❌ API error (${response.status})`, 'error');
+                    }
+                })
+                .then(data => {
+                    if (data) {
+                        console.log('API Data:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('API Error:', error);
+                    updateStatus('api-status', '❌ API connection failed', 'error');
+                });
+        }
+
+        // Auto-run checks on page load
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                checkGTM();
+                checkConfig();
+                checkScripts();
+            }, 2000); // Wait 2 seconds for GTM to load
+        });
+
+        // Add click handler to test bell
+        document.addEventListener('DOMContentLoaded', function() {
+            const bell = document.getElementById('my-notification-icon');
+            bell.addEventListener('click', function() {
+                console.log('🔔 Test bell clicked!');
+                updateStatus('bell-status', '🔔 Bell clicked - check console for details', 'warning');
+                
+                // Try to open widget
+                if (typeof window.productflow_openWidget === 'function') {
+                    window.productflow_openWidget();
+                    updateStatus('bell-status', '✅ Widget opened from bell click', 'success');
+                } else if (window.ProductFlow && window.ProductFlow.openWidget) {
+                    window.ProductFlow.openWidget();
+                    updateStatus('bell-status', '✅ Widget opened from bell click', 'success');
+                } else {
+                    updateStatus('bell-status', '❌ Widget not available from bell click', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
