@@ -10,35 +10,110 @@ import {
   Wrench,
   Phone,
   MessageCircle,
-  Palette
+  Palette,
+  RefreshCw,
+  Download,
+  Eye
 } from 'lucide-react';
 
 function App(): JSX.Element {
-  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>('light');
-  const [selectedColor, setSelectedColor] = useState<string>('#2372E8');
-  const [iconColor] = useState<string>('#FFFFFF');
-  const [selectedButtonStyle, setSelectedButtonStyle] = useState<string>('message');
-  const [widgetName, setWidgetName] = useState<string>('');
-  const [widgetTitle, setWidgetTitle] = useState<string>('');
-  const [placeholderText, setPlaceholderText] = useState<string>('');
-  const [greetingMessage, setGreetingMessage] = useState<string>('');
-  const [selectedHosting, setSelectedHosting] = useState<'net2phone' | 'self'>('net2phone');
-  const [generatedCode] = useState<string>('uhciuashcuiashviuashviuahviuashyjiabsjvhjkabshjvbashkxhasbvkjhasbvkjhsbznvcyjbsvjkbnz...');
+  // Widget settings state
+  const [widgetSettings, setWidgetSettings] = useState({
+    widgetName: 'My AI Widget',
+    selectedAgent: 'boss-support',
+    primaryColor: '#667eea',
+    secondaryColor: '#f3f4f6',
+    backgroundColor: '#ffffff',
+    textColor: '#1f2937',
+    widgetTitle: 'AI Assistant',
+    greeting: 'Hi! How can I help you today?',
+    placeholder: 'Type your message...',
+    buttonStyle: 'modern-chat',
+    hostingOption: 'hosted',
+    currentTheme: 'light'
+  });
+
+  const [generatedCode, setGeneratedCode] = useState<string>('');
+  const [showPreview, setShowPreview] = useState<boolean>(false);
 
   const colors = [
-    '#000000', '#6366F1', '#2372E8', '#06B6D4', '#10B981', 
-    '#F59E0B', '#F97316', '#EF4444', '#EC4899', '#8B5CF6'
+    '#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a',
+    '#ffecd2', '#fcb69f', '#a8edea', '#d299c2', '#89f7fe'
   ];
+
+  const availableAgents = [
+    { id: 'boss-support', name: 'Boss Support', description: 'Expert support for IDT Boss Money Transfer' },
+    { id: 'boss-sales', name: 'Boss Sales', description: 'Sales specialist for Boss Money services' },
+    { id: 'net2phone-support', name: 'Net2Phone Support', description: 'Technical support for Net2Phone services' },
+    { id: 'general-assistant', name: 'General Assistant', description: 'Multi-purpose AI assistant' }
+  ];
+
+  const buttonStyles = {
+    'modern-chat': { name: 'Modern Chat', icon: '💬', shape: 'circle' },
+    'help-question': { name: 'Help & Questions', icon: '❓', shape: 'pill' },
+    'support-headset': { name: 'Live Support', icon: '🎧', shape: 'rounded' },
+    'chat-with-us': { name: 'Chat With Us', icon: '💬', shape: 'pill' }
+  };
+
+  const updateSetting = (key: string, value: any) => {
+    setWidgetSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const generateWidget = () => {
+    const widgetCode = `<!-- Net2Phone AI Widget -->
+<div id="net2phone-widget-${Date.now()}"></div>
+<script>
+  (function() {
+    const widget = {
+      apiKey: 'your-api-key',
+      agent: '${widgetSettings.selectedAgent}',
+      title: '${widgetSettings.widgetTitle}',
+      greeting: '${widgetSettings.greeting}',
+      placeholder: '${widgetSettings.placeholder}',
+      primaryColor: '${widgetSettings.primaryColor}',
+      backgroundColor: '${widgetSettings.backgroundColor}',
+      textColor: '${widgetSettings.textColor}',
+      buttonStyle: '${widgetSettings.buttonStyle}',
+      theme: '${widgetSettings.currentTheme}'
+    };
+    
+    // Load Net2Phone AI Widget
+    const script = document.createElement('script');
+    script.src = 'https://widget.net2phone.ai/v1/widget.js';
+    script.setAttribute('data-config', JSON.stringify(widget));
+    document.head.appendChild(script);
+  })();
+</script>`;
+    
+    setGeneratedCode(widgetCode);
+  };
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(generatedCode);
+  };
+
+  const downloadWidget = () => {
+    const blob = new Blob([generatedCode], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${widgetSettings.widgetName.replace(/\s+/g, '-').toLowerCase()}-widget.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const renderThemeSection = () => (
     <div className="mb-8">
       <h3 className="text-white text-lg font-medium mb-4">Theme</h3>
       <div className="grid grid-cols-2 gap-4">
         <div 
-          onClick={() => setSelectedTheme('light')}
-          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${selectedTheme === 'light' ? 'border-blue-400' : 'border-transparent'}`}
+          onClick={() => updateSetting('currentTheme', 'light')}
+          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${widgetSettings.currentTheme === 'light' ? 'border-blue-400' : 'border-transparent'}`}
         >
-          {selectedTheme === 'light' && (
+          {widgetSettings.currentTheme === 'light' && (
             <div className="absolute top-2 right-2 w-5 h-5 bg-blue-400 rounded-full flex items-center justify-center">
               <Check className="w-3 h-3 text-white" />
             </div>
@@ -53,10 +128,10 @@ function App(): JSX.Element {
         </div>
         
         <div 
-          onClick={() => setSelectedTheme('dark')}
-          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${selectedTheme === 'dark' ? 'border-blue-400' : 'border-transparent'}`}
+          onClick={() => updateSetting('currentTheme', 'dark')}
+          className={`relative p-4 bg-gray-700 rounded-lg cursor-pointer border-2 ${widgetSettings.currentTheme === 'dark' ? 'border-blue-400' : 'border-transparent'}`}
         >
-          {selectedTheme === 'dark' && (
+          {widgetSettings.currentTheme === 'dark' && (
             <div className="absolute top-2 right-2 w-5 h-5 bg-blue-400 rounded-full flex items-center justify-center">
               <Check className="w-3 h-3 text-white" />
             </div>
@@ -76,16 +151,16 @@ function App(): JSX.Element {
   const renderMainColors = () => (
     <div className="mb-8">
       <h3 className="text-white text-lg font-medium mb-4">Main Colors</h3>
-      <div className="flex space-x-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         {colors.map((color) => (
           <button
             key={color}
-            onClick={() => setSelectedColor(color)}
-            className={`w-10 h-10 rounded-full border-2 ${selectedColor === color ? 'border-blue-400' : 'border-gray-600'} relative`}
+            onClick={() => updateSetting('primaryColor', color)}
+            className={`w-10 h-10 rounded-full border-2 ${widgetSettings.primaryColor === color ? 'border-blue-400' : 'border-gray-600'} relative hover:scale-110 transition-transform`}
             style={{ backgroundColor: color }}
           >
-            {selectedColor === color && (
-              <Check className="w-4 h-4 text-white absolute inset-0 m-auto" />
+            {widgetSettings.primaryColor === color && (
+              <Check className="w-4 h-4 text-white absolute inset-0 m-auto drop-shadow-md" />
             )}
           </button>
         ))}
@@ -93,23 +168,34 @@ function App(): JSX.Element {
       
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-gray-300 text-sm mb-2">Bubble color</p>
+          <p className="text-gray-300 text-sm mb-2">Primary color</p>
           <div className="flex items-center space-x-2">
             <div 
-              className="w-8 h-8 rounded" 
-              style={{ backgroundColor: selectedColor }}
+              className="w-8 h-8 rounded border border-gray-600" 
+              style={{ backgroundColor: widgetSettings.primaryColor }}
             ></div>
-            <span className="text-white text-sm font-mono">{selectedColor}</span>
+            <input
+              type="text"
+              value={widgetSettings.primaryColor}
+              onChange={(e) => updateSetting('primaryColor', e.target.value)}
+              className="text-white text-sm font-mono bg-gray-700 px-2 py-1 rounded border border-gray-600 focus:border-blue-400 focus:outline-none"
+            />
           </div>
         </div>
         
         <div>
-          <p className="text-gray-300 text-sm mb-2">Icon color</p>
+          <p className="text-gray-300 text-sm mb-2">Background color</p>
           <div className="flex items-center space-x-2">
             <div 
-              className="w-8 h-8 rounded bg-white"
+              className="w-8 h-8 rounded border border-gray-600" 
+              style={{ backgroundColor: widgetSettings.backgroundColor }}
             ></div>
-            <span className="text-white text-sm font-mono">{iconColor}</span>
+            <input
+              type="text"
+              value={widgetSettings.backgroundColor}
+              onChange={(e) => updateSetting('backgroundColor', e.target.value)}
+              className="text-white text-sm font-mono bg-gray-700 px-2 py-1 rounded border border-gray-600 focus:border-blue-400 focus:outline-none"
+            />
           </div>
         </div>
       </div>
@@ -119,56 +205,20 @@ function App(): JSX.Element {
   const renderButtonStyle = () => (
     <div className="mb-8">
       <h3 className="text-white text-lg font-medium mb-4">Button Style</h3>
-      <div className="grid grid-cols-4 gap-3">
-        <button
-          onClick={() => setSelectedButtonStyle('help')}
-          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'help' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1`}
-        >
-          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-lg">?</span>
-          </div>
-          {selectedButtonStyle === 'help' && (
-            <Check className="w-3 h-3 text-blue-400" />
-          )}
-        </button>
-        
-        <button
-          onClick={() => setSelectedButtonStyle('message')}
-          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'message' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1 relative`}
-        >
-          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: selectedColor }}>
-            <MessageSquare className="w-4 h-4 text-white" />
-          </div>
-          {selectedButtonStyle === 'message' && (
-            <div className="absolute top-1 right-1 w-4 h-4 bg-blue-400 rounded-full flex items-center justify-center">
-              <Check className="w-2 h-2 text-white" />
+      <div className="grid grid-cols-2 gap-4">
+        {Object.entries(buttonStyles).map(([key, style]) => (
+          <button
+            key={key}
+            onClick={() => updateSetting('buttonStyle', key)}
+            className={`p-4 rounded-lg border-2 ${widgetSettings.buttonStyle === key ? 'border-blue-400 bg-blue-900 bg-opacity-20' : 'border-gray-600 bg-gray-700'} hover:bg-gray-600 transition-colors text-left`}
+          >
+            <div className="flex items-center space-x-3 mb-2">
+              <span className="text-2xl">{style.icon}</span>
+              <span className="text-white font-medium">{style.name}</span>
             </div>
-          )}
-        </button>
-        
-        <button
-          onClick={() => setSelectedButtonStyle('help2')}
-          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'help2' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1`}
-        >
-          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-lg">?</span>
-          </div>
-          {selectedButtonStyle === 'help2' && (
-            <Check className="w-3 h-3 text-blue-400" />
-          )}
-        </button>
-        
-        <button
-          onClick={() => setSelectedButtonStyle('message2')}
-          className={`p-3 rounded-lg border-2 ${selectedButtonStyle === 'message2' ? 'border-blue-400' : 'border-gray-600'} bg-gray-700 flex flex-col items-center space-y-1`}
-        >
-          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: selectedColor }}>
-            <MessageSquare className="w-4 h-4 text-white" />
-          </div>
-          {selectedButtonStyle === 'message2' && (
-            <Check className="w-3 h-3 text-blue-400" />
-          )}
-        </button>
+            <p className="text-gray-400 text-sm">Shape: {style.shape}</p>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -176,28 +226,74 @@ function App(): JSX.Element {
   const renderGenerateCode = () => (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white text-lg font-medium">Generate a Code</h3>
-        <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">
-          Generate
-        </button>
+        <h3 className="text-white text-lg font-medium">Generate Widget Code</h3>
+        <div className="flex space-x-2">
+          <button 
+            onClick={generateWidget}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Generate</span>
+          </button>
+          {generatedCode && (
+            <>
+              <button 
+                onClick={copyCode}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+              >
+                <Copy className="w-4 h-4" />
+                <span>Copy</span>
+              </button>
+              <button 
+                onClick={downloadWidget}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
-      <div className="bg-gray-800 rounded-lg p-4 relative">
-        <p className="text-gray-300 text-sm font-mono break-all">{generatedCode}</p>
-        <button className="absolute top-2 right-2 text-gray-400 hover:text-white">
-          <span className="text-sm">show more</span>
-        </button>
-        <button className="absolute bottom-2 right-2 p-2 text-gray-400 hover:text-white">
-          <Copy className="w-4 h-4" />
-        </button>
-      </div>
+      {generatedCode ? (
+        <div className="bg-gray-800 rounded-lg p-4 relative max-h-64 overflow-auto">
+          <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap">{generatedCode}</pre>
+        </div>
+      ) : (
+        <div className="bg-gray-800 rounded-lg p-4 text-center">
+          <p className="text-gray-400">Click "Generate" to create your widget code</p>
+        </div>
+      )}
     </div>
   );
 
   const renderDeleteWidget = () => (
     <div>
       <h3 className="text-white text-lg font-medium mb-4">Delete Widget</h3>
-      <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-        Delete
+      <button 
+        onClick={() => {
+          if (confirm('Are you sure you want to delete this widget configuration?')) {
+            // Reset to default settings
+            setWidgetSettings({
+              widgetName: 'My AI Widget',
+              selectedAgent: 'boss-support',
+              primaryColor: '#667eea',
+              secondaryColor: '#f3f4f6',
+              backgroundColor: '#ffffff',
+              textColor: '#1f2937',
+              widgetTitle: 'AI Assistant',
+              greeting: 'Hi! How can I help you today?',
+              placeholder: 'Type your message...',
+              buttonStyle: 'modern-chat',
+              hostingOption: 'hosted',
+              currentTheme: 'light'
+            });
+            setGeneratedCode('');
+          }
+        }}
+        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Delete Configuration
       </button>
     </div>
   );
@@ -285,31 +381,36 @@ function App(): JSX.Element {
 
             {/* Name Field */}
             <div className="mb-8">
-              <label className="block text-gray-300 text-sm mb-2">Name</label>
+              <label className="block text-gray-300 text-sm mb-2">Widget Name</label>
               <input
                 type="text"
-                value={widgetName}
-                onChange={(e) => setWidgetName(e.target.value)}
+                value={widgetSettings.widgetName}
+                onChange={(e) => updateSetting('widgetName', e.target.value)}
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                placeholder="Enter a name for your widget"
               />
             </div>
 
-            {/* Virtual Agent and Domain */}
-            <div className="grid grid-cols-1 gap-6 mb-8">
+            {/* Virtual Agent Selection */}
+            <div className="mb-8">
               <div className="bg-gray-800 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white font-medium">Virtual Agent</h3>
-                  <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
+                  <span className="text-blue-400 text-sm">
+                    {availableAgents.find(a => a.id === widgetSettings.selectedAgent)?.name || 'None selected'}
+                  </span>
                 </div>
-                <p className="text-gray-400 text-sm">There is no Virtual Agent assigned to this widget.</p>
-              </div>
-              
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-white font-medium">Domain</h3>
-                  <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
-                </div>
-                <p className="text-gray-400 text-sm">There is no authorized domain assigned to this widget.</p>
+                <select
+                  value={widgetSettings.selectedAgent}
+                  onChange={(e) => updateSetting('selectedAgent', e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                >
+                  {availableAgents.map((agent) => (
+                    <option key={agent.id} value={agent.id}>
+                      {agent.name} - {agent.description}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -317,7 +418,6 @@ function App(): JSX.Element {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-white text-lg font-medium">Widget Configurations</h2>
-                <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500">Edit</button>
               </div>
               
               <div className="space-y-4">
@@ -325,9 +425,10 @@ function App(): JSX.Element {
                   <label className="block text-gray-300 text-sm mb-2">Widget Title</label>
                   <input
                     type="text"
-                    value={widgetTitle}
-                    onChange={(e) => setWidgetTitle(e.target.value)}
+                    value={widgetSettings.widgetTitle}
+                    onChange={(e) => updateSetting('widgetTitle', e.target.value)}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    placeholder="AI Assistant"
                   />
                 </div>
                 
@@ -335,19 +436,20 @@ function App(): JSX.Element {
                   <label className="block text-gray-300 text-sm mb-2">Placeholder Text</label>
                   <input
                     type="text"
-                    value={placeholderText}
-                    onChange={(e) => setPlaceholderText(e.target.value)}
+                    value={widgetSettings.placeholder}
+                    onChange={(e) => updateSetting('placeholder', e.target.value)}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    placeholder="Type your message..."
                   />
                 </div>
                 
                 <div>
                   <label className="block text-gray-300 text-sm mb-2">Greeting message</label>
-                  <input
-                    type="text"
-                    value={greetingMessage}
-                    onChange={(e) => setGreetingMessage(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  <textarea
+                    value={widgetSettings.greeting}
+                    onChange={(e) => updateSetting('greeting', e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400 h-24 resize-none"
+                    placeholder="Hi! How can I help you today?"
                   />
                 </div>
               </div>
@@ -366,8 +468,8 @@ function App(): JSX.Element {
               <h2 className="text-white text-lg font-medium mb-4">Hosting Options</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div 
-                  onClick={() => setSelectedHosting('net2phone')}
-                  className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'net2phone' ? 'border-blue-400 bg-blue-900 bg-opacity-30' : 'border-gray-600 bg-gray-800'}`}
+                  onClick={() => updateSetting('hostingOption', 'hosted')}
+                  className={`p-6 rounded-lg cursor-pointer border-2 transition-all ${widgetSettings.hostingOption === 'hosted' ? 'border-blue-400 bg-blue-900 bg-opacity-30' : 'border-gray-600 bg-gray-800 hover:bg-gray-700'}`}
                 >
                   <h3 className="text-white font-medium mb-2">net2phone Hosted</h3>
                   <p className="text-gray-300 text-sm mb-4">
@@ -381,8 +483,8 @@ function App(): JSX.Element {
                 </div>
                 
                 <div 
-                  onClick={() => setSelectedHosting('self')}
-                  className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'self' ? 'border-blue-400 bg-gray-800' : 'border-gray-600 bg-gray-800'}`}
+                  onClick={() => updateSetting('hostingOption', 'self-hosted')}
+                  className={`p-6 rounded-lg cursor-pointer border-2 transition-all ${widgetSettings.hostingOption === 'self-hosted' ? 'border-blue-400 bg-blue-900 bg-opacity-30' : 'border-gray-600 bg-gray-800 hover:bg-gray-700'}`}
                 >
                   <h3 className="text-white font-medium mb-2">Self-Hosted</h3>
                   <p className="text-gray-300 text-sm mb-4">
