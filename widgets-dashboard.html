@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Widgets - Net2Phone AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #2a2a2a;
+            border-right: 1px solid #404040;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            color: #1a1a1a;
+            font-size: 14px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .nav-section {
+            padding: 20px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            color: #cccccc;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: #404040;
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: #4a9eff;
+            color: #ffffff;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 30px;
+            border-bottom: 1px solid #404040;
+            background: #1a1a1a;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #cccccc;
+            cursor: pointer;
+            margin-right: 20px;
+            padding: 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #404040;
+            color: #ffffff;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .widgets-count {
+            background: #4a9eff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-secondary {
+            background: #404040;
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            background: #505050;
+        }
+
+        .btn-primary {
+            background: #4a9eff;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #3a8eef;
+        }
+
+        /* Content Panel */
+        .content-panel {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #1a1a1a;
+        }
+
+        /* Widgets Grid */
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .widget-card {
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .widget-card:hover {
+            border-color: #4a9eff;
+            background: #333333;
+            transform: translateY(-2px);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .widget-info {
+            flex: 1;
+        }
+
+        .widget-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .widget-description {
+            font-size: 13px;
+            color: #888888;
+            margin-bottom: 12px;
+        }
+
+        .widget-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .widget-action {
+            background: none;
+            border: none;
+            color: #888888;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .widget-action:hover {
+            background: #404040;
+            color: #ffffff;
+        }
+
+        .widget-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            min-width: 80px;
+        }
+
+        .stat-number {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4a9eff;
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #888888;
+            text-align: center;
+        }
+
+        .widget-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-agent {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-avatar {
+            font-size: 16px;
+            width: 24px;
+            height: 24px;
+            background: #4a9eff;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .agent-name {
+            font-size: 13px;
+            color: #cccccc;
+        }
+
+        .widget-updated {
+            font-size: 11px;
+            color: #888888;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888888;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .empty-description {
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .widgets-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+            }
+            
+            .sidebar {
+                width: 240px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .widgets-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Widget Info Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .widget-info-modal {
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888888;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #404040;
+            color: #ffffff;
+        }
+
+        .modal-content {
+            padding: 20px;
+        }
+
+        .info-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .info-group:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-group label {
+            font-size: 13px;
+            color: #888888;
+            font-weight: 500;
+            min-width: 120px;
+            margin-right: 16px;
+        }
+
+        .info-group span {
+            font-size: 14px;
+            color: #ffffff;
+            flex: 1;
+            text-align: right;
+            word-break: break-all;
+        }
+
+        .widget-uid {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            justify-content: flex-end;
+        }
+
+        .widget-uid:hover {
+            background: #404040;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #888888;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 2px;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            color: #4a9eff;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">N2</div>
+                <span class="logo-text">net2phone AI</span>
+            </div>
+            
+            <div class="nav-section">
+                <a href="#" class="nav-item active">
+                    <div class="nav-icon">🎨</div>
+                    <span>Widget Builder</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <a href="integrated-builder.html" class="back-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                        </svg>
+                    </a>
+                    <div class="header-title">
+                        <h1>My Widgets</h1>
+                        <span class="widgets-count" id="widgetsCount">0 Widgets</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="refreshWidgets()">🔄 Refresh</button>
+                    <a href="integrated-builder.html" class="btn btn-primary">➕ New Widget</a>
+                </div>
+            </div>
+
+            <!-- Content Panel -->
+            <div class="content-panel">
+                <!-- Widgets Grid -->
+                <div class="widgets-grid" id="widgetsGrid">
+                    <!-- Widgets will be populated by JavaScript -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">🎨</div>
+                    <div class="empty-title">No widgets created yet</div>
+                    <div class="empty-description">Create your first AI chat widget to get started with customer engagement.</div>
+                    <a href="integrated-builder.html" class="btn btn-primary">Create First Widget</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="widgets-dashboard.js"></script>
+</body>
+</html>
