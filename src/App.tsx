@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 
 function App(): JSX.Element {
-  const [currentView, setCurrentView] = useState<'styling' | 'builder'>('styling');
   const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>('light');
   const [selectedColor, setSelectedColor] = useState<string>('#2372E8');
   const [iconColor] = useState<string>('#FFFFFF');
@@ -197,7 +196,8 @@ function App(): JSX.Element {
     </div>
   );
 
-  const renderWidgetBuilder = () => (
+
+  return (
     <div className="min-h-screen bg-gray-900">
       <div className="bg-blue-800 px-6 py-3 text-center">
         <div className="flex items-center justify-center space-x-2 text-white">
@@ -207,148 +207,133 @@ function App(): JSX.Element {
         <p className="text-blue-200 text-sm">The widget functions as a preview in edit mode.</p>
       </div>
       
-      <div className="p-6">
-        <div className="flex items-center space-x-4 mb-8">
-          <button 
-            onClick={() => setCurrentView('styling')}
-            className="text-gray-400 hover:text-white flex items-center space-x-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-          <h1 className="text-white text-xl font-medium">Create new Widget</h1>
-          <button className="ml-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500">
-            Edit
-          </button>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-gray-300 text-sm mb-2">Name</label>
-          <input
-            type="text"
-            value={widgetName}
-            onChange={(e) => setWidgetName(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium">Virtual Agent</h3>
-              <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
-            </div>
-            <p className="text-gray-400 text-sm">There is no Virtual Agent assigned to this widget.</p>
-          </div>
+      <div className="flex">
+        {/* Left Column - Theme and Styling */}
+        <div className="w-1/2 p-6">
+          <h1 className="text-white text-2xl font-semibold mb-8">Theme and Styling</h1>
           
-          <div className="bg-gray-800 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium">Domain</h3>
-              <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
-            </div>
-            <p className="text-gray-400 text-sm">There is no authorized domain assigned to this widget.</p>
-          </div>
+          {renderThemeSection()}
+          {renderMainColors()}
+          {renderButtonStyle()}
+          {renderGenerateCode()}
+          {renderDeleteWidget()}
         </div>
 
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-white text-lg font-medium">Widget Configurations</h2>
-            <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500">Edit</button>
+        {/* Right Column - Widget Builder */}
+        <div className="w-1/2 p-6 border-l border-gray-700">
+          <div className="flex items-center space-x-4 mb-8">
+            <button className="text-gray-400 hover:text-white flex items-center space-x-2">
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+            <h1 className="text-white text-xl font-medium">Create new Widget</h1>
+            <button className="ml-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500">
+              Edit
+            </button>
           </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">Widget Title</label>
-              <input
-                type="text"
-                value={widgetTitle}
-                onChange={(e) => setWidgetTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">Placeholder Text</label>
-              <input
-                type="text"
-                value={placeholderText}
-                onChange={(e) => setPlaceholderText(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-gray-300 text-sm mb-2">Greeting message</label>
-              <input
-                type="text"
-                value={greetingMessage}
-                onChange={(e) => setGreetingMessage(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
-              />
-            </div>
-          </div>
-        </div>
 
-        <div>
-          <h2 className="text-white text-lg font-medium mb-4">Hosting Options</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div 
-              onClick={() => setSelectedHosting('net2phone')}
-              className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'net2phone' ? 'border-blue-400 bg-blue-900 bg-opacity-30' : 'border-gray-600 bg-gray-800'}`}
-            >
-              <h3 className="text-white font-medium mb-2">net2phone Hosted</h3>
-              <p className="text-gray-300 text-sm mb-4">
-                Widget loads from our servers. Automatic updates, fast maintenance, and better performance.
-              </p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="px-2 py-1 bg-green-600 text-white rounded">Auto-updates</span>
-                <span className="px-2 py-1 bg-blue-600 text-white rounded">CDN delivery</span>
-                <span className="px-2 py-1 bg-purple-600 text-white rounded">Zero maintenance</span>
+          <div className="mb-6">
+            <label className="block text-gray-300 text-sm mb-2">Name</label>
+            <input
+              type="text"
+              value={widgetName}
+              onChange={(e) => setWidgetName(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 mb-8">
+            <div className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-white font-medium">Virtual Agent</h3>
+                <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
               </div>
+              <p className="text-gray-400 text-sm">There is no Virtual Agent assigned to this widget.</p>
             </div>
             
-            <div 
-              onClick={() => setSelectedHosting('self')}
-              className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'self' ? 'border-blue-400 bg-gray-800' : 'border-gray-600 bg-gray-800'}`}
-            >
-              <h3 className="text-white font-medium mb-2">Self-Hosted</h3>
-              <p className="text-gray-300 text-sm mb-4">
-                Download widget.js and host it on your own servers. Full control but requires manual updates.
-              </p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="px-2 py-1 bg-yellow-600 text-white rounded">Manual updates</span>
-                <span className="px-2 py-1 bg-gray-600 text-white rounded">Custom hosting</span>
-                <span className="px-2 py-1 bg-blue-600 text-white rounded">Full control</span>
+            <div className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-white font-medium">Domain</h3>
+                <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded">Assign</button>
+              </div>
+              <p className="text-gray-400 text-sm">There is no authorized domain assigned to this widget.</p>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-lg font-medium">Widget Configurations</h2>
+              <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500">Edit</button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 text-sm mb-2">Widget Title</label>
+                <input
+                  type="text"
+                  value={widgetTitle}
+                  onChange={(e) => setWidgetTitle(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 text-sm mb-2">Placeholder Text</label>
+                <input
+                  type="text"
+                  value={placeholderText}
+                  onChange={(e) => setPlaceholderText(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 text-sm mb-2">Greeting message</label>
+                <input
+                  type="text"
+                  value={greetingMessage}
+                  onChange={(e) => setGreetingMessage(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                />
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
 
-  if (currentView === 'builder') {
-    return renderWidgetBuilder();
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-white text-2xl font-semibold">Theme and Styling</h1>
-          <button 
-            onClick={() => setCurrentView('builder')}
-            className="text-blue-400 hover:text-blue-300 underline"
-          >
-            Go to Widget Builder
-          </button>
+          <div>
+            <h2 className="text-white text-lg font-medium mb-4">Hosting Options</h2>
+            <div className="grid grid-cols-1 gap-4">
+              <div 
+                onClick={() => setSelectedHosting('net2phone')}
+                className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'net2phone' ? 'border-blue-400 bg-blue-900 bg-opacity-30' : 'border-gray-600 bg-gray-800'}`}
+              >
+                <h3 className="text-white font-medium mb-2">net2phone Hosted</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Widget loads from our servers. Automatic updates, fast maintenance, and better performance.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="px-2 py-1 bg-green-600 text-white rounded">Auto-updates</span>
+                  <span className="px-2 py-1 bg-blue-600 text-white rounded">CDN delivery</span>
+                  <span className="px-2 py-1 bg-purple-600 text-white rounded">Zero maintenance</span>
+                </div>
+              </div>
+              
+              <div 
+                onClick={() => setSelectedHosting('self')}
+                className={`p-6 rounded-lg cursor-pointer border-2 ${selectedHosting === 'self' ? 'border-blue-400 bg-gray-800' : 'border-gray-600 bg-gray-800'}`}
+              >
+                <h3 className="text-white font-medium mb-2">Self-Hosted</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Download widget.js and host it on your own servers. Full control but requires manual updates.
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="px-2 py-1 bg-yellow-600 text-white rounded">Manual updates</span>
+                  <span className="px-2 py-1 bg-gray-600 text-white rounded">Custom hosting</span>
+                  <span className="px-2 py-1 bg-blue-600 text-white rounded">Full control</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {renderThemeSection()}
-        {renderMainColors()}
-        {renderButtonStyle()}
-        {renderGenerateCode()}
-        {renderDeleteWidget()}
       </div>
     </div>
   );
