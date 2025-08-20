@@ -105,6 +105,89 @@ function App(): JSX.Element {
     URL.revokeObjectURL(url);
   };
 
+  const renderWidgetPreview = () => {
+    const buttonStyle = buttonStyles[widgetSettings.buttonStyle as keyof typeof buttonStyles];
+    const isCircle = buttonStyle?.shape === 'circle';
+    const isPill = buttonStyle?.shape === 'pill';
+    
+    return (
+      <div className="fixed bottom-6 right-6 z-50">
+        {/* Widget Chat Window (if open) */}
+        {showPreview && (
+          <div 
+            className="mb-4 w-80 h-96 rounded-lg shadow-2xl border border-gray-300 overflow-hidden"
+            style={{ backgroundColor: widgetSettings.backgroundColor }}
+          >
+            {/* Chat Header */}
+            <div 
+              className="p-4 border-b flex items-center justify-between"
+              style={{ 
+                backgroundColor: widgetSettings.primaryColor,
+                color: widgetSettings.currentTheme === 'light' ? '#ffffff' : widgetSettings.textColor 
+              }}
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <span className="font-medium">{widgetSettings.widgetTitle}</span>
+              </div>
+              <button 
+                onClick={() => setShowPreview(false)}
+                className="text-white hover:bg-white hover:bg-opacity-20 rounded p-1"
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Chat Messages */}
+            <div className="p-4 flex-1 flex flex-col justify-end">
+              <div className="mb-4">
+                <div 
+                  className="inline-block p-3 rounded-lg text-sm"
+                  style={{ 
+                    backgroundColor: widgetSettings.primaryColor,
+                    color: '#ffffff'
+                  }}
+                >
+                  {widgetSettings.greeting}
+                </div>
+              </div>
+              
+              {/* Input Area */}
+              <div className="border-t pt-3">
+                <input
+                  type="text"
+                  placeholder={widgetSettings.placeholder}
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                  style={{ 
+                    borderColor: widgetSettings.primaryColor,
+                    color: widgetSettings.textColor
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Widget Button */}
+        <button
+          onClick={() => setShowPreview(!showPreview)}
+          className={`shadow-lg hover:scale-110 transition-all flex items-center justify-center font-medium text-white ${
+            isCircle ? 'w-14 h-14 rounded-full' : 
+            isPill ? 'px-4 py-3 rounded-full' : 
+            'px-4 py-3 rounded-lg'
+          }`}
+          style={{ backgroundColor: widgetSettings.primaryColor }}
+          title="Preview Widget"
+        >
+          {buttonStyle?.icon && <span className="mr-2">{buttonStyle.icon}</span>}
+          {!isCircle && buttonStyle?.name}
+        </button>
+      </div>
+    );
+  };
+
   const renderThemeSection = () => (
     <div className="mb-8">
       <h3 className="text-white text-lg font-medium mb-4">Theme</h3>
@@ -164,21 +247,39 @@ function App(): JSX.Element {
             )}
           </button>
         ))}
+        
+        {/* Custom Color Picker */}
+        <div className="relative">
+          <input
+            type="color"
+            value={widgetSettings.primaryColor}
+            onChange={(e) => updateSetting('primaryColor', e.target.value)}
+            className="w-10 h-10 rounded-full border-2 border-gray-600 cursor-pointer bg-transparent"
+            title="Choose custom color"
+          />
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center border border-gray-600">
+            <Palette className="w-2 h-2 text-gray-300" />
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-gray-300 text-sm mb-2">Primary color</p>
           <div className="flex items-center space-x-2">
-            <div 
-              className="w-8 h-8 rounded border border-gray-600" 
-              style={{ backgroundColor: widgetSettings.primaryColor }}
-            ></div>
+            <input
+              type="color"
+              value={widgetSettings.primaryColor}
+              onChange={(e) => updateSetting('primaryColor', e.target.value)}
+              className="w-8 h-8 rounded border border-gray-600 cursor-pointer"
+              title="Pick primary color"
+            />
             <input
               type="text"
               value={widgetSettings.primaryColor}
               onChange={(e) => updateSetting('primaryColor', e.target.value)}
-              className="text-white text-sm font-mono bg-gray-700 px-2 py-1 rounded border border-gray-600 focus:border-blue-400 focus:outline-none"
+              className="text-white text-sm font-mono bg-gray-700 px-2 py-1 rounded border border-gray-600 focus:border-blue-400 focus:outline-none flex-1"
+              placeholder="#667eea"
             />
           </div>
         </div>
@@ -186,15 +287,19 @@ function App(): JSX.Element {
         <div>
           <p className="text-gray-300 text-sm mb-2">Background color</p>
           <div className="flex items-center space-x-2">
-            <div 
-              className="w-8 h-8 rounded border border-gray-600" 
-              style={{ backgroundColor: widgetSettings.backgroundColor }}
-            ></div>
+            <input
+              type="color"
+              value={widgetSettings.backgroundColor}
+              onChange={(e) => updateSetting('backgroundColor', e.target.value)}
+              className="w-8 h-8 rounded border border-gray-600 cursor-pointer"
+              title="Pick background color"
+            />
             <input
               type="text"
               value={widgetSettings.backgroundColor}
               onChange={(e) => updateSetting('backgroundColor', e.target.value)}
-              className="text-white text-sm font-mono bg-gray-700 px-2 py-1 rounded border border-gray-600 focus:border-blue-400 focus:outline-none"
+              className="text-white text-sm font-mono bg-gray-700 px-2 py-1 rounded border border-gray-600 focus:border-blue-400 focus:outline-none flex-1"
+              placeholder="#ffffff"
             />
           </div>
         </div>
@@ -507,6 +612,9 @@ function App(): JSX.Element {
           </div>
         </div>
       </div>
+
+      {/* Live Widget Preview */}
+      {renderWidgetPreview()}
     </div>
   );
 }
