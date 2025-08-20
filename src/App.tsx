@@ -3,24 +3,22 @@ import {
   ArrowLeft, 
   Check,
   Copy,
-  Trash2,
   MessageSquare,
-  Palette,
-  SquareActivity
+  Settings
 } from 'lucide-react';
 
-function App() {
-  const [currentView, setCurrentView] = useState('styling'); // 'styling' or 'builder'
-  const [selectedTheme, setSelectedTheme] = useState('light');
-  const [selectedColor, setSelectedColor] = useState('#2372E8');
-  const [iconColor, setIconColor] = useState('#FFFFFF');
-  const [selectedButtonStyle, setSelectedButtonStyle] = useState('message');
-  const [widgetName, setWidgetName] = useState('');
-  const [widgetTitle, setWidgetTitle] = useState('');
-  const [placeholderText, setPlaceholderText] = useState('');
-  const [greetingMessage, setGreetingMessage] = useState('');
-  const [selectedHosting, setSelectedHosting] = useState('net2phone');
-  const [generatedCode, setGeneratedCode] = useState('uhciuashcuiashviuashviuahviuashyjiabsjvhjkabshjvbashkxhasbvkjhasbvkjhsbznvcyjbsvjkbnz...');
+function App(): JSX.Element {
+  const [currentView, setCurrentView] = useState<'styling' | 'builder'>('styling');
+  const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark'>('light');
+  const [selectedColor, setSelectedColor] = useState<string>('#2372E8');
+  const [iconColor] = useState<string>('#FFFFFF');
+  const [selectedButtonStyle, setSelectedButtonStyle] = useState<string>('message');
+  const [widgetName, setWidgetName] = useState<string>('');
+  const [widgetTitle, setWidgetTitle] = useState<string>('');
+  const [placeholderText, setPlaceholderText] = useState<string>('');
+  const [greetingMessage, setGreetingMessage] = useState<string>('');
+  const [selectedHosting, setSelectedHosting] = useState<'net2phone' | 'self'>('net2phone');
+  const [generatedCode] = useState<string>('uhciuashcuiashviuashviuahviuashyjiabsjvhjkabshjvbashkxhasbvkjhasbvkjhsbznvcyjbsvjkbnz...');
 
   const colors = [
     '#000000', '#6366F1', '#2372E8', '#06B6D4', '#10B981', 
@@ -203,7 +201,7 @@ function App() {
     <div className="min-h-screen bg-gray-900">
       <div className="bg-blue-800 px-6 py-3 text-center">
         <div className="flex items-center justify-center space-x-2 text-white">
-          <SquareActivity className="w-5 h-5" />
+          <Settings className="w-5 h-5" />
           <span className="font-medium">Widget Builder</span>
         </div>
         <p className="text-blue-200 text-sm">The widget functions as a preview in edit mode.</p>
